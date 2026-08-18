@@ -14,11 +14,11 @@ android {
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.neonnexus.game"
+    applicationId = "com.nyrds.neonnexus"
     minSdk = 24
     targetSdk = 36
-    versionCode = 13
-    versionName = "13.0"
+    versionCode = 17
+    versionName = "17.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

@@ -7,10 +7,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Neon Nexus - Balance & Bomber</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            background: #000; color: #fff; font-family: 'Courier New', monospace; 
+            background: #000; color: #fff; font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace; 
             overflow: hidden; height: 100vh; width: 100vw; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             touch-action: none; 
@@ -23,7 +26,7 @@
             background: #000; z-index: 100; display: flex; flex-direction: column;
             align-items: center; justify-content: center; transition: opacity 0.5s;
         }
-        #loading-text { font-size: 1.5rem; color: #00ffff; text-shadow: 0 0 10px #00ffff; margin-bottom: 20px; }
+        #loading-text { font-size: 1.5rem; color: #00ffff; text-shadow: 0 0 10px #00ffff; margin-bottom: 20px; letter-spacing: 1px; }
         #loading-bar-container { width: 80%; max-width: 300px; height: 10px; background: #111; border: 1px solid #333; border-radius: 5px; overflow: hidden; }
         #loading-bar { height: 100%; width: 0%; background: #00ffff; box-shadow: 0 0 10px #00ffff; transition: width 0.2s; }
         #debug-log { margin-top: 20px; font-size: 0.8rem; color: #ff0044; max-width: 80%; text-align: center; max-height: 150px; overflow-y: auto; }
@@ -31,80 +34,138 @@
         /* START SCREEN */
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 90; display: flex; flex-direction: column;
+            background: rgba(0,0,0,0.88); z-index: 90; display: flex; flex-direction: column;
             align-items: center; justify-content: center; opacity: 0; visibility: hidden;
             transition: opacity 0.5s ease, visibility 0s linear 0.5s;
             padding: 15px;
         }
         #start-screen.show { opacity: 1; visibility: visible; transition: opacity 0.5s ease, visibility 0s linear 0s; }
-        #start-title { font-size: 1.6rem; color: #00ffff; text-shadow: 0 0 15px #00ffff; margin-bottom: 20px; text-align: center; line-height: 1.2; }
+        #start-title { font-size: 1.7rem; color: #00ffff; text-shadow: 0 0 15px #00ffff; margin-bottom: 20px; text-align: center; line-height: 1.2; letter-spacing: 1px; }
         #start-button {
-            padding: 10px 30px; font-size: 1.1rem; font-family: 'Courier New', monospace; font-weight: bold;
-            color: #000; background: #00ffff; border: none; border-radius: 5px; cursor: pointer;
-            box-shadow: 0 0 15px #00ffff; transition: transform 0.2s, box-shadow 0.2s;
-            touch-action: manipulation;
+            padding: 12px 36px; font-size: 1.15rem; font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace; font-weight: bold;
+            color: #000; background: #00ffff; border: none;
+            clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+            cursor: pointer; box-shadow: 0 0 20px #00ffff; transition: transform 0.2s, box-shadow 0.2s;
+            touch-action: manipulation; letter-spacing: 1px;
         }
-        #start-button:hover { transform: scale(1.05); box-shadow: 0 0 25px #00ffff; }
+        #start-button:hover { transform: scale(1.05); box-shadow: 0 0 30px #00ffff; }
+
+        #start-instructions {
+            margin-top: 22px;
+            display: flex; flex-direction: column; gap: 6px;
+            background: rgba(5, 15, 25, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.35);
+            padding: 10px 18px;
+            clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
+        }
+        .inst-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .inst-tag { color: #00ffff; font-weight: bold; font-size: 0.85rem; letter-spacing: 1px; text-shadow: 0 0 6px #00ffff; }
+        .inst-desc { color: #ccddee; font-size: 0.8rem; letter-spacing: 0.5px; }
 
         #game-container { position: relative; width: 100%; height: 100%; }
         #hud-left, #hud-right {
             position: absolute; top: 0; height: 100%; display: flex; 
-            flex-direction: column; justify-content: space-between; 
-            padding: 8px 10px; background: rgba(0,0,0,0.85); 
+            flex-direction: column; 
+            padding: 10px 8px; background: rgba(5, 10, 15, 0.88); 
             z-index: 10; pointer-events: auto; box-sizing: border-box;
         }
-        #hud-left { left: 0; border-right: 1px solid #333; align-items: flex-start; }
-        #hud-right { right: 0; border-left: 1px solid #333; align-items: flex-end; }
+        #hud-left { 
+            left: 0; border-right: 1.5px solid rgba(0, 255, 255, 0.35); 
+            align-items: flex-start;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+        }
+        #hud-right { 
+            right: 0; border-left: 1.5px solid rgba(0, 255, 255, 0.35); 
+            align-items: flex-end;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+        }
         
-        #ui-container { display: flex; flex-direction: row; gap: 8px; align-items: flex-start; }
-        #score { font-size: 1.0rem; color: #00ff88; font-weight: bold; margin: 0; writing-mode: vertical-rl; transform: rotate(180deg); }
-        #combo { color: #ff00ff; font-size: 0.85rem; font-weight: bold; margin: 0; writing-mode: vertical-rl; transform: rotate(180deg); }
+        #ui-container { 
+            display: flex; flex-direction: row-reverse; gap: 6px; align-items: flex-end; 
+            flex-shrink: 0; margin: 10px 0;
+        }
+        #score { 
+            font-size: 1.15rem; color: #00ff88; font-weight: bold; margin: 0; 
+            text-shadow: 0 0 8px rgba(0, 255, 136, 0.7); 
+            white-space: nowrap; letter-spacing: 1px; 
+            writing-mode: vertical-rl; transform: rotate(180deg);
+        }
+        #combo { 
+            color: #ff00ff; font-size: 1.0rem; font-weight: bold; margin: 0; 
+            text-shadow: 0 0 8px rgba(255, 0, 255, 0.7); 
+            white-space: nowrap; letter-spacing: 1px; 
+            writing-mode: vertical-rl; transform: rotate(180deg);
+        }
         
-        #mothership-ui { display: flex; flex-direction: row; align-items: flex-start; gap: 6px; height: 120px; }
-        #mothership-label { font-size: 0.6rem; color: #ff8800; margin: 0; text-shadow: 0 0 8px #ff8800; font-weight: bold; line-height: 1.2; writing-mode: vertical-rl; text-align: left; }
-        #mothership-bar-container { width: 10px; height: 100%; background: rgba(0,0,0,0.7); border: 1px solid #ff8800; border-radius: 5px; overflow: hidden; display: flex; align-items: flex-end; }
+        #mothership-ui { 
+            display: flex; flex-direction: row; align-items: stretch; gap: 6px; 
+            flex-grow: 1; margin: 10px 0; min-height: 0; height: 100%;
+        }
+        #mothership-label { 
+            height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+            font-size: 0.75rem; color: #ff8800; margin: 0; text-shadow: 0 0 8px #ff8800; font-weight: bold; 
+            line-height: 1; user-select: none;
+        }
+        #mothership-bar-container { width: 10px; height: 100%; background: rgba(0,0,0,0.7); border: 1px solid #ff8800; border-radius: 4px; overflow: hidden; display: flex; align-items: flex-end; flex-shrink: 0; }
         #mothership-health-bar { height: 100%; width: 100%; background: #ff8800; transition: height 0.2s; }
         
-        #weapon-selector { display: flex; flex-direction: column; gap: 5px; }
+        #weapon-selector { 
+            display: flex; flex-direction: column; gap: 5px; 
+            margin-top: auto; flex-shrink: 0;
+        }
         .weapon-slot { 
-            width: 42px; height: 42px; border: 1.5px solid #555; border-radius: 6px; 
-            display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: bold; 
-            background: rgba(0,0,0,0.7); cursor: pointer; transition: all 0.2s; position: relative; 
+            width: 42px; height: 42px; border: 1.5px solid #445; 
+            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+            display: flex; align-items: center; justify-content: center; font-size: 1.0rem; font-weight: bold; 
+            background: rgba(10, 15, 25, 0.85); cursor: pointer; transition: all 0.2s; position: relative; 
             touch-action: manipulation;
         }
-        .weapon-slot.active { border-color: #00ffff; box-shadow: 0 0 10px #00ffff; color: #00ffff; transform: scale(1.05); }
-        .weapon-slot.locked { opacity: 0.3; cursor: not-allowed; border-color: #555; color: #555; box-shadow: none; transform: scale(1); }
+        .weapon-slot.active { 
+            border-color: #00ffff; box-shadow: 0 0 12px rgba(0, 255, 255, 0.6); 
+            color: #00ffff; background: rgba(0, 255, 255, 0.15); transform: scale(1.05); 
+        }
+        .weapon-slot.locked { opacity: 0.35; cursor: not-allowed; border-color: #444; color: #666; box-shadow: none; transform: scale(1); }
         .weapon-slot.locked::after { content: '🔒'; position: absolute; font-size: 0.6rem; bottom: 2px; right: 3px; }
         
         #mode-toggle-button {
-            width: 65px; height: 42px; border-radius: 6px;
-            background: rgba(0,0,0,0.7); border: 1.5px solid #00ffff; color: #00ffff;
-            font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.7rem; line-height: 1.1;
+            width: 65px; height: 44px;
+            background: rgba(10, 15, 25, 0.85); border: 1.5px solid #00ffff; color: #00ffff;
+            clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+            font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace; font-weight: bold; font-size: 0.75rem; line-height: 1.1;
             display: flex; align-items: center; justify-content: center; text-align: center;
             cursor: pointer; transition: all 0.2s; touch-action: manipulation;
+            margin-top: auto; flex-shrink: 0;
         }
         #mode-toggle-button.shoot {
             border-color: #ff8800; color: #ff8800;
-            box-shadow: 0 0 10px #ff8800;
+            background: rgba(255, 136, 0, 0.15);
+            box-shadow: 0 0 12px rgba(255, 136, 0, 0.6);
+        }
+        #mode-toggle-button.auto {
+            border-color: #00ff88; color: #00ff88;
+            background: rgba(0, 255, 136, 0.15);
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.6);
         }
         
-        #unlock-notification { position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); font-size: 1.4rem; color: #00ffff; text-shadow: 0 0 15px #00ffff; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 20; text-align: center; }
+        #unlock-notification { position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); font-size: 1.4rem; color: #00ffff; text-shadow: 0 0 15px #00ffff; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 20; text-align: center; letter-spacing: 1px; }
         #powerup-status { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; font-size: 0.75rem; z-index: 10; pointer-events: none; }
         .powerup-icon { padding: 2px 8px; border-radius: 10px; background: rgba(0,0,0,0.7); display: none; }
         
         #game-canvas { width: 100%; height: 100vh; display: block; background: #000000; }
         
-        #instructions { font-size: 0.6rem; color: #aaa; opacity: 0.5; white-space: nowrap; pointer-events: none; margin-bottom: 15px; text-align: right; line-height: 1.4; }
-        
+        #info-container { flex-shrink: 0; }
         #info-button {
-            width: 34px; height: 34px; border-radius: 50%;
-            background: rgba(0,0,0,0.7); border: 1.5px solid #00ffff; color: #00ffff;
-            font-size: 1.0rem; font-weight: bold; cursor: pointer;
+            width: 36px; height: 36px;
+            background: rgba(10, 15, 25, 0.85); border: 1.5px solid #00ffff; color: #00ffff;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 8px #00ffff; touch-action: manipulation;
-            font-family: 'Courier New', monospace;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.5); touch-action: manipulation;
+            font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace;
+            transition: all 0.2s;
         }
-        #info-button:hover { background: #00ffff; color: #000; }
+        #info-button:hover { background: #00ffff; color: #000; box-shadow: 0 0 15px #00ffff; }
         
         #info-modal {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -115,9 +176,10 @@
         }
         #info-modal.show { display: flex; }
         #info-content {
-            background: #111; border: 1.5px solid #00ffff; padding: 20px; border-radius: 8px;
+            background: rgba(8, 12, 18, 0.95); border: 1.5px solid #00ffff; padding: 20px;
+            clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
             max-width: 320px; width: 100%; text-align: left; position: relative;
-            font-size: 0.8rem; line-height: 1.3;
+            font-size: 0.85rem; line-height: 1.4;
         }
         #close-info {
             position: absolute; top: 6px; right: 10px; background: transparent; border: none;
@@ -125,7 +187,7 @@
         }
         
         #enemy-legend { 
-            position: static; background: transparent; border: none; padding: 0; font-size: 0.8rem; 
+            position: static; background: transparent; border: none; padding: 0; font-size: 0.85rem; 
             display: block; pointer-events: none;
         }
         #enemy-legend hr { margin: 6px 0; }
@@ -135,13 +197,14 @@
             transform: translate(-50%, -50%) scale(0.8); 
             text-align: center; color: #ff0044; 
             text-shadow: 0 0 15px #ff0044; z-index: 80; 
-            background: rgba(0,0,0,0.92); padding: 12px 20px; 
-            border: 2px solid #ff0044; border-radius: 10px; 
+            background: rgba(12, 5, 8, 0.94); padding: 16px 24px; 
+            border: 2px solid #ff0044;
+            clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
             opacity: 0; visibility: hidden;
             transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s; 
             pointer-events: none; 
             display: flex; flex-direction: column; align-items: center;
-            width: 80%; max-width: 300px; box-shadow: 0 0 20px rgba(255, 0, 68, 0.6);
+            width: 80%; max-width: 300px; box-shadow: 0 0 25px rgba(255, 0, 68, 0.6);
         }
         #game-over.show { 
             opacity: 1; visibility: visible;
@@ -150,19 +213,20 @@
             pointer-events: auto;
         }
         
-        #game-over-text { font-size: 1.3rem; margin-bottom: 8px; letter-spacing: 1px; }
+        #game-over-text { font-size: 1.35rem; margin-bottom: 8px; letter-spacing: 1px; }
         
         #play-again-button {
             margin-top: 10px;
-            padding: 6px 20px; font-size: 0.9rem; font-family: 'Courier New', monospace; font-weight: bold;
-            color: #00ffff; background: transparent; border: 1.5px solid #00ffff; border-radius: 4px;
-            cursor: pointer; box-shadow: 0 0 8px #00ffff; transition: all 0.2s;
-            touch-action: manipulation;
+            padding: 8px 24px; font-size: 0.95rem; font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace; font-weight: bold;
+            color: #00ffff; background: transparent; border: 1.5px solid #00ffff;
+            clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+            cursor: pointer; box-shadow: 0 0 10px #00ffff; transition: all 0.2s;
+            touch-action: manipulation; letter-spacing: 1px;
         }
         #play-again-button:hover { background: #00ffff; color: #000; transform: scale(1.05); }
 
-        #highscore-table { font-size: 0.8rem; color: #ffff00; text-align: left; display: inline-block; width: 100%; max-width: 200px; }
-        #highscore-table h3 { text-decoration: underline; margin-bottom: 4px; text-align: center; color: #fff; font-size: 0.85rem; }
+        #highscore-table { font-size: 0.85rem; color: #ffff00; text-align: left; display: inline-block; width: 100%; max-width: 200px; }
+        #highscore-table h3 { text-decoration: underline; margin-bottom: 4px; text-align: center; color: #fff; font-size: 0.9rem; }
         .hs-row { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
         .hs-rank { color: #aaa; width: 16px; }
     </style>
@@ -177,15 +241,16 @@
     <div id="start-screen">
         <div id="start-title">NEON NEXUS<br>DEFEND THE MOTHERSHIP</div>
         <button id="start-button">START GAME</button>
+        <div id="start-instructions">
+            <div class="inst-row"><span class="inst-tag">TAP / DRAG</span> <span class="inst-desc">AUTO MOVE OR SHOOT</span></div>
+            <div class="inst-row"><span class="inst-tag">MODE BTN</span> <span class="inst-desc">SWITCH AUTO / MOVE / SHOOT</span></div>
+            <div class="inst-row"><span class="inst-tag">PINCH</span> <span class="inst-desc">ZOOM CAMERA</span></div>
+            <div class="inst-row"><span class="inst-tag">SLOT 5</span> <span class="inst-desc">WARP BLINK</span></div>
+        </div>
     </div>
 
     <div id="game-container">
         <div id="hud-left">
-            <div id="ui-container">
-                <div id="score">SCORE: 0</div>
-                <div id="combo">COMBO: x1</div>
-            </div>
-            
             <div id="weapon-selector">
                 <div class="weapon-slot active" data-weapon="pulse">1</div>
                 <div class="weapon-slot locked" data-weapon="laser">2</div>
@@ -200,14 +265,17 @@
                 <button id="info-button">i</button>
             </div>
             
+            <div id="ui-container">
+                <div id="score">◈ 0</div>
+                <div id="combo">x1</div>
+            </div>
+            
             <div id="mothership-ui">
-                <div id="mothership-label">MOTHERSHIP<br>INTEGRITY</div>
+                <div id="mothership-label"><span>M</span><span>O</span><span>T</span><span>H</span><span>E</span><span>R</span><span>S</span><span>H</span><span>I</span><span>P</span></div>
                 <div id="mothership-bar-container"><div id="mothership-health-bar"></div></div>
             </div>
             
-            <div id="instructions">DRAG: MOVE<br>TAP: SHOOT<br>PINCH: ZOOM</div>
-            
-            <div id="mode-toggle-button">MODE<br>MOVE</div>
+            <div id="mode-toggle-button" class="auto">MODE<br>AUTO</div>
         </div>
         
         <div id="unlock-notification"></div>
@@ -313,8 +381,9 @@
         // ============================================
         const CONFIG = {
             PLAYER_SIZE: 1, PLAYER_COLOR_MOVE: 0x00ffff, PLAYER_COLOR_SHOOT: 0xff8800, PLAYER_SPEED: 0.15, PLAYER_MAX_SPEED: 0.7,
+            PLAYER_TURN_SPEED: 0.25,
             ENEMY_SPAWN_RATE: 60, MAX_ENEMIES: 150, COMBO_TIMEOUT: 120,
-            AIM_ASSIST_ANGLE: Math.PI / 6, AIM_ASSIST_STRENGTH: 0.4, ENEMY_BULLET_SPEED: 0.4,
+            AIM_ASSIST_ANGLE: Math.PI / 3.5, AIM_ASSIST_STRENGTH: 0.75, ENEMY_BULLET_SPEED: 0.4,
             POWERUP_DROP_RATE: 0.12, CLEANUP_DISTANCE: 120, VIEW_SIZE: 13, MAP_RADIUS: 30,
             MOTHERSHIP_SIZE: 5, MOTHERSHIP_MAX_HP: 1000, TURRET_RANGE: 25, TURRET_COOLDOWN: 45,
             TURRET_TURN_SPEED: 0.05, MAX_TURRETS: 6, MAX_ZOOM_MULTIPLIER: 8, 
@@ -334,7 +403,7 @@
             score: 0, highScores: JSON.parse(localStorage.getItem('neonNexusHighScores')) || [], 
             combo: 1, comboTimer: 0, isGameOver: false, isMothershipDead: false, isPaused: false,
             difficultyMultiplier: 1, enemiesKilled: 0, totalKills: 0,
-            unlockedWeapons: new Set(['pulse']), mode: 'move', currentWeapon: 'pulse', fireCooldown: 0,
+            unlockedWeapons: new Set(['pulse']), mode: 'auto', autoAction: 'move', currentWeapon: 'pulse', fireCooldown: 0,
             shield: false, multiplierTimer: 0, overdriveTimer: 0, mothershipHealth: CONFIG.MOTHERSHIP_MAX_HP,
             userZoom: 1.0,
         };
@@ -611,6 +680,33 @@
             }
         }
 
+        function checkIsShootTarget(target) {
+            let nearestDist = Infinity;
+            const enemies = EntityManager.getEntitiesWith('Enemy', 'Position');
+            if (enemies.length === 0) return false;
+            
+            const playerPos = new THREE.Vector3(playerEntity.Position.x, playerEntity.Position.y, 0);
+            const tapDir = new THREE.Vector3().subVectors(target, playerPos).normalize();
+            
+            let hasAlignedEnemy = false;
+            enemies.forEach(e => {
+                const d = Math.hypot(e.Position.x - target.x, e.Position.y - target.y);
+                if (d < nearestDist) nearestDist = d;
+                
+                const enemyVec = new THREE.Vector3(e.Position.x, e.Position.y, 0).sub(playerPos);
+                const enemyDist = enemyVec.length();
+                if (enemyDist < 28) {
+                    const enemyDir = enemyVec.clone().normalize();
+                    if (tapDir.angleTo(enemyDir) < Math.PI / 4) {
+                        hasAlignedEnemy = true;
+                    }
+                }
+            });
+            
+            // Generous shoot zone: within 8.0 world units of any enemy or aimed in an enemy's cone
+            return (nearestDist < 8.0 || hasAlignedEnemy);
+        }
+
         function onPointerMove(event) {
             if (gameState.isPaused) return;
             
@@ -632,6 +728,17 @@
             }
             
             updatePointerFromEvent(event);
+            
+            if (pointerCache.length === 1 && gameState.mode === 'auto' && gameStarted && !gameState.isGameOver) {
+                raycaster.setFromCamera(pointer, camera);
+                raycaster.ray.intersectPlane(interactionPlane, targetPoint);
+                const shouldShoot = checkIsShootTarget(targetPoint);
+                const newAction = shouldShoot ? 'shoot' : 'move';
+                if (gameState.autoAction !== newAction) {
+                    gameState.autoAction = newAction;
+                    updateModeVisuals();
+                }
+            }
         }
 
         function onPointerDown(event) {
@@ -658,8 +765,20 @@
             
             if (intersects.length > 0) {
                 toggleMode();
-            } else if (gameState.mode === 'shoot') {
-                fireWeapon();
+            } else {
+                if (gameState.mode === 'auto') {
+                    raycaster.ray.intersectPlane(interactionPlane, targetPoint);
+                    if (checkIsShootTarget(targetPoint)) {
+                        gameState.autoAction = 'shoot';
+                    } else {
+                        gameState.autoAction = 'move';
+                    }
+                    updateModeVisuals();
+                }
+                
+                if (gameState.mode === 'shoot' || (gameState.mode === 'auto' && gameState.autoAction === 'shoot')) {
+                    fireWeapon();
+                }
             }
         }
 
@@ -695,13 +814,14 @@
         function getAimAssistDirection(originalDirection) {
             const maxAngle = CONFIG.AIM_ASSIST_ANGLE; let bestEnemy = null, bestAngle = maxAngle;
             const enemies = EntityManager.getEntitiesWith('Enemy', 'Position');
+            const playerPos = new THREE.Vector3(playerEntity.Position.x, playerEntity.Position.y, 0);
             enemies.forEach(e => {
-                const enemyDirection = new THREE.Vector3().subVectors(new THREE.Vector3(e.Position.x, e.Position.y, 0), new THREE.Vector3(playerEntity.Position.x, playerEntity.Position.y, 0)).normalize();
+                const enemyDirection = new THREE.Vector3().subVectors(new THREE.Vector3(e.Position.x, e.Position.y, 0), playerPos).normalize();
                 const angle = originalDirection.angleTo(enemyDirection);
                 if (angle < bestAngle) { bestAngle = angle; bestEnemy = e; }
             });
             if (bestEnemy) {
-                const enemyDirection = new THREE.Vector3().subVectors(new THREE.Vector3(bestEnemy.Position.x, bestEnemy.Position.y, 0), new THREE.Vector3(playerEntity.Position.x, playerEntity.Position.y, 0)).normalize();
+                const enemyDirection = new THREE.Vector3().subVectors(new THREE.Vector3(bestEnemy.Position.x, bestEnemy.Position.y, 0), playerPos).normalize();
                 return originalDirection.clone().lerp(enemyDirection, CONFIG.AIM_ASSIST_STRENGTH);
             }
             return originalDirection;
@@ -713,7 +833,7 @@
             raycaster.setFromCamera(pointer, camera);
             raycaster.ray.intersectPlane(interactionPlane, targetPoint);
             let direction = new THREE.Vector3().subVectors(targetPoint, new THREE.Vector3(playerEntity.Position.x, playerEntity.Position.y, 0)).normalize();
-            if (gameState.currentWeapon === 'pulse' || gameState.currentWeapon === 'missile') direction = getAimAssistDirection(direction);
+            direction = getAimAssistDirection(direction);
             SFX[gameState.currentWeapon]();
 
             if (gameState.currentWeapon === 'pulse') fireBullet(playerEntity.Position.x, playerEntity.Position.y, direction, weapon.color, weapon.speed, 1, 'pulse');
@@ -985,9 +1105,14 @@
             
             const delta = new THREE.Vector3().subVectors(targetPoint, new THREE.Vector3(playerEntity.Position.x, playerEntity.Position.y, 0));
             const distanceToMouse = delta.length();
-            if (distanceToMouse > 0.1) playerEntity.Rotation.z = Math.atan2(delta.y, delta.x);
+            if (distanceToMouse > 0.1) {
+                const targetAngle = Math.atan2(delta.y, delta.x);
+                const diff = Math.atan2(Math.sin(targetAngle - playerEntity.Rotation.z), Math.cos(targetAngle - playerEntity.Rotation.z));
+                playerEntity.Rotation.z += diff * CONFIG.PLAYER_TURN_SPEED;
+            }
             
-            if (gameState.mode === 'move') {
+            const isMoving = gameState.mode === 'move' || (gameState.mode === 'auto' && gameState.autoAction === 'move');
+            if (isMoving) {
                 const dx = targetPoint.x - playerEntity.Position.x;
                 const dy = targetPoint.y - playerEntity.Position.y;
                 let moveX = dx * CONFIG.PLAYER_SPEED;
@@ -1037,6 +1162,14 @@
             crosshair.position.copy(targetPoint);
             
             if (playerEntity.Player.fireCooldown > 0) playerEntity.Player.fireCooldown--;
+            
+            if (pointerCache.length === 1 && !gameState.isPaused && !gameState.isGameOver && gameStarted) {
+                if (gameState.mode === 'shoot' || (gameState.mode === 'auto' && gameState.autoAction === 'shoot')) {
+                    if (playerEntity.Player.fireCooldown <= 0) {
+                        fireWeapon();
+                    }
+                }
+            }
             
             const blinkBtn = document.getElementById('blink-button');
             if (playerEntity.Player.blinkCooldown > 0) {
@@ -1371,15 +1504,27 @@
         }
         function updateModeVisuals() {
             const modeBtn = document.getElementById('mode-toggle-button');
-            if (gameState.mode === 'shoot') {
+            const isShoot = gameState.mode === 'shoot' || (gameState.mode === 'auto' && gameState.autoAction === 'shoot');
+            
+            if (isShoot) {
                 playerMesh.material.color.setHex(CONFIG.PLAYER_COLOR_SHOOT); playerGlow.material.color.setHex(CONFIG.PLAYER_COLOR_SHOOT);
                 modeRing.material.opacity = 0.8;
-                modeBtn.classList.add('shoot');
-                modeBtn.innerHTML = 'MODE<br>SHOOT';
             } else {
                 playerMesh.material.color.setHex(CONFIG.PLAYER_COLOR_MOVE); playerGlow.material.color.setHex(CONFIG.PLAYER_COLOR_MOVE);
                 modeRing.material.opacity = 0;
+            }
+            
+            if (gameState.mode === 'shoot') {
+                modeBtn.classList.add('shoot');
+                modeBtn.classList.remove('auto');
+                modeBtn.innerHTML = 'MODE<br>SHOOT';
+            } else if (gameState.mode === 'auto') {
                 modeBtn.classList.remove('shoot');
+                modeBtn.classList.add('auto');
+                modeBtn.innerHTML = 'MODE<br>AUTO';
+            } else {
+                modeBtn.classList.remove('shoot');
+                modeBtn.classList.remove('auto');
                 modeBtn.innerHTML = 'MODE<br>MOVE';
             }
         }
@@ -1401,7 +1546,9 @@
         }
         
         function toggleMode() {
-            gameState.mode = gameState.mode === 'move' ? 'shoot' : 'move';
+            if (gameState.mode === 'auto') gameState.mode = 'move';
+            else if (gameState.mode === 'move') gameState.mode = 'shoot';
+            else gameState.mode = 'auto';
             SFX.modeSwitch();
             updateModeVisuals();
         }
@@ -1428,8 +1575,8 @@
             updateUI();
         }
         function updateUI() {
-            document.getElementById('score').textContent = `SCORE: ${gameState.score}`;
-            document.getElementById('combo').textContent = `COMBO: x${gameState.combo}`;
+            document.getElementById('score').textContent = `◈ ${gameState.score}`;
+            document.getElementById('combo').textContent = `x${gameState.combo}`;
             updateHighScoreUI();
         }
         function hitPlayer() {
