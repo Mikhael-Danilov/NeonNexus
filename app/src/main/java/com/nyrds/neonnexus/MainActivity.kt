@@ -1,4 +1,4 @@
-package com.example
+package com.nyrds.neonnexus
 
 import android.annotation.SuppressLint
 import android.graphics.Color
@@ -62,6 +62,7 @@ fun GameWebViewContainer(onWebViewCreated: (WebView) -> Unit) {
           ViewGroup.LayoutParams.MATCH_PARENT
         )
         setBackgroundColor(Color.BLACK)
+        setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
         
         settings.apply {
           javaScriptEnabled = true
@@ -79,7 +80,7 @@ fun GameWebViewContainer(onWebViewCreated: (WebView) -> Unit) {
         }
 
         webViewClient = object : WebViewClient() {}
-        webChromeClient = object : WebChromeClient() {}
+        webChromeClient = object : WebChromeClient() { override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean { android.util.Log.d("WebViewConsole", "${consoleMessage?.message()} -- From line ${consoleMessage?.lineNumber()} of ${consoleMessage?.sourceId()}"); return true } }
 
         loadUrl("file:///android_asset/index.html")
         onWebViewCreated(this)

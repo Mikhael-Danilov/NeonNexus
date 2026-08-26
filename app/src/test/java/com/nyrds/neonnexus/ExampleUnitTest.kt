@@ -1,4 +1,4 @@
-package com.example
+package com.nyrds.neonnexus
 
 import org.junit.Assert.*
 import org.junit.Test
