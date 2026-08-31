@@ -206,8 +206,8 @@ function spawnPowerup(x, y) {
 function applyPowerup(type) {
     SFX.powerup();
     if (type === 'shield') { gameState.shield = true; document.getElementById('shield-status').style.display = 'block'; }
-    else if (type === 'multiplier') { gameState.multiplierTimer = 600; document.getElementById('multiplier-status').style.display = 'block'; }
-    else if (type === 'overdrive') { gameState.overdriveTimer = 300; document.getElementById('overdrive-status').style.display = 'block'; }
+    else if (type === 'multiplier') { gameState.multiplierTimer = 300; document.getElementById('multiplier-status').style.display = 'block'; }
+    else if (type === 'overdrive') { gameState.overdriveTimer = 180; document.getElementById('overdrive-status').style.display = 'block'; }
     else if (type === 'turret') { addTurret(); }
     else if (type === 'nuke') {
         const enemies = EntityManager.getEntitiesWith('Enemy');

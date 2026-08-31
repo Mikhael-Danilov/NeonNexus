@@ -13,7 +13,8 @@ function showUnlockNotification(weapon) {
     const names = { pulse: 'PULSE CANNON', spread: 'SPREAD SHOT', laser: 'LASER BEAM', missile: 'HOMING MISSILES' };
     notif.innerHTML = `WEAPON UNLOCKED<br>${names[weapon]}`;
     notif.style.opacity = 1;
-    new TWEEN.Tween(notif).to({ opacity: 0 }, 500).delay(2000).start();
+    const fade = { o: 1 };
+    new TWEEN.Tween(fade).to({ o: 0 }, 500).delay(2000).onUpdate(() => { notif.style.opacity = fade.o; }).start();
 }
 function selectWeapon(weaponName) {
     if (gameState.unlockedWeapons.has(weaponName)) { gameState.currentWeapon = weaponName; SFX.modeSwitch(); updateWeaponUI(); }

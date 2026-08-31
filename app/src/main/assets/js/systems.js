@@ -1,8 +1,10 @@
 // SYSTEM UPDATES
 // ============================================
 function updatePlayerSystem() {
-    raycaster.setFromCamera(pointer, camera);
-    raycaster.ray.intersectPlane(interactionPlane, targetPoint);
+    if (pointerCache.length === 1) {
+        raycaster.setFromCamera(pointer, camera);
+        raycaster.ray.intersectPlane(interactionPlane, targetPoint);
+    }
     
     const delta = new THREE.Vector3().subVectors(targetPoint, new THREE.Vector3(playerEntity.Position.x, playerEntity.Position.y, 0));
     const distanceToMouse = delta.length();
