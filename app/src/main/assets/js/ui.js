@@ -92,17 +92,27 @@ function updateHighScoreUI() {
     else { html = '<div style="text-align:center; color:#aaa;">No scores yet</div>'; }
     if(list) list.innerHTML = html;
 }
-function updateScore(points) {
+function updateScore(points, killX, killY) {
     let pointsToAdd = points * gameState.combo;
     if (gameState.multiplierTimer > 0) pointsToAdd *= 2;
     gameState.score += pointsToAdd; gameState.enemiesKilled++;
     gameState.combo = Math.min(gameState.combo + 1, 10); gameState.comboTimer = CONFIG.COMBO_TIMEOUT;
     if (gameState.enemiesKilled % 10 === 0) gameState.difficultyMultiplier += 0.05;
+    if (gameState.combo > 1 && killX !== undefined) spawnWorldCombo(killX, killY, gameState.combo);
     updateUI();
+}
+function spawnWorldCombo(worldX, worldY, combo) {
+    const v = new THREE.Vector3(worldX, worldY, 0).project(camera);
+    const el = document.createElement('div');
+    el.className = 'world-combo';
+    el.textContent = `x${combo}`;
+    el.style.left = `${(v.x * 0.5 + 0.5) * window.innerWidth}px`;
+    el.style.top = `${(-v.y * 0.5 + 0.5) * window.innerHeight}px`;
+    document.getElementById('game-container').appendChild(el);
+    setTimeout(() => el.remove(), 900);
 }
 function updateUI() {
     document.getElementById('score').textContent = `◈ ${gameState.score}`;
-    document.getElementById('combo').textContent = `x${gameState.combo}`;
     updateHighScoreUI();
 }
 function hitPlayer() {

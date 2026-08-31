@@ -53,6 +53,11 @@ function updatePlayerSystem() {
         layer.position.y = camera.position.y * layer.userData.parallaxFactor;
     });
     
+    const playerDist = Math.hypot(playerEntity.Position.x, playerEntity.Position.y);
+    const edgeProximity = Math.max(0, Math.min(1, (playerDist - (CONFIG.MAP_RADIUS - 6)) / 6));
+    const edgePulse = playerDist > CONFIG.MAP_RADIUS ? 0.15 * (0.5 + 0.5 * Math.sin(Date.now() * 0.02)) : 0;
+    boundaryMesh.material.opacity = Math.min(1, 0.3 + 0.5 * edgeProximity + edgePulse);
+    
     playerMesh.position.set(playerEntity.Position.x, playerEntity.Position.y, 0);
     playerMesh.rotation.z = playerEntity.Rotation.z;
     playerGlow.position.set(playerEntity.Position.x, playerEntity.Position.y, 0);

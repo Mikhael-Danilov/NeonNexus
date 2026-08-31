@@ -66,8 +66,9 @@ function damageEnemy(enemy, damage) {
             }
         }
         if (Math.random() < CONFIG.POWERUP_DROP_RATE) spawnPowerup(enemy.Position.x, enemy.Position.y);
+        const killX = enemy.Position.x, killY = enemy.Position.y;
         EntityManager.removeEntity(enemy);
-        updateScore(enemy.Enemy.points);
+        updateScore(enemy.Enemy.points, killX, killY);
         gameState.totalKills++;
         localStorage.setItem('neonNexusTotalKills', gameState.totalKills);
         checkWeaponUnlocks();
