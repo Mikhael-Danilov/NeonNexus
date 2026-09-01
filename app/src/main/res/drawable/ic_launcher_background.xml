@@ -1,20 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
+<!-- Synthwave scene: gradient sky, stars, neon horizon, perspective grid floor -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="54" android:startY="0" android:endX="54" android:endY="108">
+                <item android:color="#FF0A0F2E" android:offset="0.0" />
+                <item android:color="#FF050814" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
     <path
-        android:fillColor="#00020B"
-        android:pathData="M0,0h108v108h-108z" />
+        android:pathData="M22,18 L22,18.01 M86,26 L86,26.01 M30,40 L30,40.01 M76,12 L76,12.01 M14,30 L14,30.01 M94,44 L94,44.01 M62,8 L62,8.01"
+        android:strokeColor="#B3EAF6FF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+    <path android:pathData="M0,58 L108,58" android:strokeColor="#2600FFFF" android:strokeWidth="4" />
+    <path android:pathData="M0,58 L108,58" android:strokeColor="#8C00FFFF" android:strokeWidth="1.2" />
     <path
-        android:fillColor="#00000000"
-        android:pathData="M18,0L18,108 M36,0L36,108 M54,0L54,108 M72,0L72,108 M90,0L90,108"
-        android:strokeWidth="0.5"
-        android:strokeColor="#1F00FFFF" />
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M0,18L108,18 M0,36L108,36 M0,54L108,54 M0,72L108,72 M0,90L108,90"
-        android:strokeWidth="0.5"
-        android:strokeColor="#1F00FFFF" />
+        android:pathData="M54,58 L-36,108 M54,58 L-6,108 M54,58 L24,108 M54,58 L54,108 M54,58 L84,108 M54,58 L114,108 M54,58 L144,108 M0,68 L108,68 M0,76 L108,76 M0,86 L108,86 M0,98 L108,98"
+        android:strokeColor="#407C3EED"
+        android:strokeWidth="1" />
 </vector>

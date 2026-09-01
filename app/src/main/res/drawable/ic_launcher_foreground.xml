@@ -1,9 +1,79 @@
-<?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:width="72dp"
-        android:height="72dp"
-        android:drawable="@drawable/neon_ship_dark_icon_1788220481246"
-        android:gravity="center" />
-</layer-list>
-
+<!-- Neon vector (Asteroids-style) ship with layered glow strokes -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M54,28 L72,74 L54,61 L36,74 Z"
+        android:strokeColor="#2A00FFFF"
+        android:strokeWidth="9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M54,28 L72,74 L54,61 L36,74 Z"
+        android:strokeColor="#7300FFFF"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M54,28 L72,74 L54,61 L36,74 Z"
+        android:strokeColor="#FF00FFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M46,72 L54,82 L62,72"
+        android:strokeColor="#2AFF0088"
+        android:strokeWidth="9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M46,72 L54,82 L62,72"
+        android:strokeColor="#73FF0088"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M46,72 L54,82 L62,72"
+        android:strokeColor="#FFFF0088"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M50,72 L54,78 L58,72"
+        android:strokeColor="#2AFF8800"
+        android:strokeWidth="9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M50,72 L54,78 L58,72"
+        android:strokeColor="#73FF8800"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M50,72 L54,78 L58,72"
+        android:strokeColor="#FFFF8800"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M47,52 L54,45 L61,52"
+        android:strokeColor="#2AFF8800"
+        android:strokeWidth="9"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M47,52 L54,45 L61,52"
+        android:strokeColor="#73FF8800"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M47,52 L54,45 L61,52"
+        android:strokeColor="#FFFF8800"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>
