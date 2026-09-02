@@ -17,3 +17,9 @@ local.properties
 .env
 debug.keystore
 .worktrees/
+
+# Release credentials — never commit
+/my-upload-key.jks
+/upload-key-cert.pem
+/keystore-credentials.txt
+/play-service-account*.json
