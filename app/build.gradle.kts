@@ -17,8 +17,9 @@ android {
     applicationId = "com.nyrds.neonnexus"
     minSdk = 24
     targetSdk = 36
-    versionCode = 17
-    versionName = "17.0"
+    // CI publishes override these so every Play upload gets a monotonic version code
+    versionCode = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 17
+    versionName = System.getenv("VERSION_NAME") ?: "17.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
