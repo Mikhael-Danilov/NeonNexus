@@ -1,0 +1,82 @@
+# Publishes a signed release AAB to Google Play.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   PLAY_SERVICE_ACCOUNT_JSON  – Full contents of the Google Play service account JSON key
+#                                (Play Console → Setup → API access → link a Google Cloud
+#                                project → create and grant the service account API access)
+#   ANDROID_KEYSTORE_BASE64    – Base64 of the upload keystore:  base64 -w0 my-upload-key.jks
+#   ANDROID_KEYSTORE_PASSWORD  – Keystore password (STORE_PASSWORD)
+#   ANDROID_KEY_PASSWORD       – Key password (KEY_PASSWORD)
+#
+# Versioning: versionCode = 1000 + workflow run number (always monotonic), so no manual
+# bump is needed. Push a tag like v1.2.3 to use "1.2.3" as the version name.
+
+name: Play Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Play release track'
+        type: choice
+        default: internal
+        options:
+          - internal
+          - closed
+          - production
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        run: |
+          CODE=$((1000 + ${{ github.run_number }}))
+          if [[ "$GITHUB_REF_NAME" == v* ]]; then
+            NAME="${GITHUB_REF_NAME#v}"
+          else
+            NAME="$CODE.0"
+          fi
+          echo "VERSION_CODE=$CODE" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=$NAME" >> "$GITHUB_ENV"
+
+      - name: Decode upload keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > my-upload-key.jks
+
+      - name: Build release bundle
+        run: ./gradlew bundleRelease --stacktrace
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/my-upload-key.jks
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-${{ env.VERSION_NAME }}
+          path: app/build/outputs/bundle/release/app-release.aab
+
+      - name: Publish to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.nyrds.neonnexus
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          releaseName: ${{ env.VERSION_NAME }}
+          # workflow_dispatch uses the chosen track; tag pushes go to production
+          track: ${{ inputs.track || 'production' }}
+          status: completed
