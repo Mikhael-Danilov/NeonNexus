@@ -78,5 +78,5 @@ jobs:
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
           releaseName: ${{ env.VERSION_NAME }}
           # workflow_dispatch uses the chosen track; tag pushes go to production
-          track: ${{ inputs.track || 'production' }}
+          track: ${{ inputs.track || 'internal' }}
           status: completed
