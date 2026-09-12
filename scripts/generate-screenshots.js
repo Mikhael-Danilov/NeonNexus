@@ -1,10 +1,18 @@
 // Regenerate Neon Nexus Play Store screenshots (1920x1080) with headless Chromium.
+// Needs `app/src/main/assets` served at SCREENSHOT_URL (default http://127.0.0.1:8765).
+// Run: python3 -m http.server 8765 --directory app/src/main/assets &  then  node scripts/generate-screenshots.js
 const path = require('path');
 const fs = require('fs');
-const { chromium } = require(path.join('/home/mike/sandbox/node_modules', 'playwright'));
+let chromium;
+try {
+  ({ chromium } = require('playwright'));
+} catch {
+  // local machine: playwright lives in the sandbox checkout
+  ({ chromium } = require('/home/mike/sandbox/node_modules/playwright'));
+}
 
-const OUT = '/home/mike/NeonNexus/store-assets/screenshots';
-const URL = 'http://127.0.0.1:8765/index.html';
+const OUT = path.resolve(__dirname, '..', 'store-assets', 'screenshots');
+const URL = process.env.SCREENSHOT_URL || 'http://127.0.0.1:8765/index.html';
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
