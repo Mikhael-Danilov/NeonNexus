@@ -37,7 +37,7 @@ jobs:
         run: |
           cd "$RUNNER_TEMP"
           npm i playwright --silent
-          npx --prefix "$RUNNER_TEMP" playwright install --with-deps chromium
+          npx playwright install --with-deps chromium
 
       - name: Serve game assets
         run: |
