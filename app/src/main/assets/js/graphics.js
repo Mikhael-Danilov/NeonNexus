@@ -51,6 +51,26 @@ function createBomberShape() {
 function createTurretShape() { const s = new THREE.Shape(); s.moveTo(1.5, 0); s.lineTo(0, 0.7); s.lineTo(-0.8, 0.7); s.lineTo(-0.8, -0.7); s.lineTo(0, -0.7); s.closePath(); return new THREE.ShapeGeometry(s); }
 function createTriangleGeometry(size = 1) { const s = new THREE.Shape(); s.moveTo(size, 0); s.lineTo(-size, size * 0.8); s.lineTo(-size, -size * 0.8); s.closePath(); return new THREE.ShapeGeometry(s); }
 
+function createLineLoop(radius, segments, color, opacity = 1) {
+    // Thin ring band instead of a 1px line: constant pixel width while rotating, so bloom doesn't strobe.
+    const w = 0.06;
+    const geo = new THREE.RingGeometry(radius - w, radius + w, segments);
+    return new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false }));
+}
+function createHexFrame(radius, color, opacity = 1) {
+    const w = 0.07;
+    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false });
+    const hex = new THREE.Mesh(new THREE.RingGeometry(radius - w, radius + w, 6), mat);
+    for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        const spoke = new THREE.Mesh(new THREE.PlaneGeometry(radius, w * 2), mat);
+        spoke.position.set(Math.cos(a) * radius / 2, Math.sin(a) * radius / 2, 0);
+        spoke.rotation.z = a;
+        hex.add(spoke);
+    }
+    return hex;
+}
+
 let SHAPES = {};
 let ENEMY_TYPES = {};
 let starLayers = [];
@@ -93,13 +113,20 @@ function initAssets() {
     boundaryMesh = new THREE.Mesh(boundaryGeometry, boundaryMaterial); boundaryMesh.position.z = -5; scene.add(boundaryMesh);
 
     mothershipGroup = new THREE.Group(); scene.add(mothershipGroup);
-    mOuterRing = new THREE.Mesh(new THREE.RingGeometry(CONFIG.MOTHERSHIP_SIZE * 1.2, CONFIG.MOTHERSHIP_SIZE * 1.4, 6), new THREE.MeshBasicMaterial({ color: 0xff4400, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
+    mOuterRing = new THREE.Group();
+    const outerA = createLineLoop(CONFIG.MOTHERSHIP_SIZE * 1.4, 6, 0xff4400, 0.9); outerA.position.z = 0.15;
+    const outerB = createLineLoop(CONFIG.MOTHERSHIP_SIZE * 1.25, 6, 0xff4400, 0.55); outerB.position.z = 0.15;
+    mOuterRing.add(outerA, outerB);
     mothershipGroup.add(mOuterRing);
-    mMidRing = new THREE.Mesh(new THREE.RingGeometry(CONFIG.MOTHERSHIP_SIZE * 0.9, CONFIG.MOTHERSHIP_SIZE * 1.0, 32), new THREE.MeshBasicMaterial({ color: 0xff8800, side: THREE.DoubleSide }));
+    mMidRing = new THREE.Group();
+    const midA = createLineLoop(CONFIG.MOTHERSHIP_SIZE * 1.0, 48, 0xff8800, 0.9); midA.position.z = 0.1;
+    const midB = createLineLoop(CONFIG.MOTHERSHIP_SIZE * 0.9, 48, 0xff8800, 0.55); midB.position.z = 0.1;
+    mMidRing.add(midA, midB);
     mothershipGroup.add(mMidRing);
-    mCore = new THREE.Mesh(new THREE.CircleGeometry(CONFIG.MOTHERSHIP_SIZE * 0.6, 6), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+    mCore = createHexFrame(CONFIG.MOTHERSHIP_SIZE * 0.6, 0xffaa00); mCore.position.z = 0.05;
     mothershipGroup.add(mCore);
-    mGlow = new THREE.Mesh(new THREE.CircleGeometry(CONFIG.MOTHERSHIP_SIZE * 0.8, 6), new THREE.MeshBasicMaterial({ color: 0xff8800, transparent: true, opacity: 0.4 }));
+    mGlow = new THREE.Mesh(new THREE.CircleGeometry(CONFIG.MOTHERSHIP_SIZE * 0.7, 6), new THREE.MeshBasicMaterial({ color: 0xff8800, transparent: true, opacity: 0.04, depthWrite: false }));
+    mGlow.position.z = -0.05;
     mothershipGroup.add(mGlow);
     mShieldMesh = new THREE.Mesh(new THREE.RingGeometry(CONFIG.MOTHERSHIP_SIZE * 1.5, CONFIG.MOTHERSHIP_SIZE * 1.7, 32), new THREE.MeshBasicMaterial({ color: 0x00ffff, side: THREE.DoubleSide, transparent: true, opacity: 0 }));
     mothershipGroup.add(mShieldMesh);

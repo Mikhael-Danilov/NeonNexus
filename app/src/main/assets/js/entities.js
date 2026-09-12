@@ -36,8 +36,8 @@ function fireLaser(direction, color) {
 function damageEnemy(enemy, damage) {
     if (!enemy.Enemy) return;
     enemy.Enemy.hp -= damage;
-    
-    if (enemy.active) {
+
+    if (enemy.Enemy.hp > 0 && enemy.active) {
         const originalScale = enemy.Renderable.mesh.scale.x;
         new TWEEN.Tween(enemy.Renderable.mesh.scale)
             .to({ x: originalScale * 1.3, y: originalScale * 1.3 }, 50)
@@ -46,6 +46,7 @@ function damageEnemy(enemy, damage) {
     }
 
     if (enemy.Enemy.hp <= 0) {
+        // Killing blow: skip the damage-flash tween, the enemy is removed this frame anyway.
         SFX.death();
         createExplosion(enemy.Position.x, enemy.Position.y, enemy.Enemy.color);
         
@@ -70,7 +71,7 @@ function damageEnemy(enemy, damage) {
         EntityManager.removeEntity(enemy);
         updateScore(enemy.Enemy.points, killX, killY);
         gameState.totalKills++;
-        localStorage.setItem('neonNexusTotalKills', gameState.totalKills);
+        if (gameState.totalKills % 10 === 0) localStorage.setItem('neonNexusTotalKills', gameState.totalKills);
         checkWeaponUnlocks();
     } else {
         SFX.hit();
@@ -206,8 +207,8 @@ function spawnPowerup(x, y) {
 function applyPowerup(type) {
     SFX.powerup();
     if (type === 'shield') { gameState.shield = true; document.getElementById('shield-status').style.display = 'block'; }
-    else if (type === 'multiplier') { gameState.multiplierTimer = 300; document.getElementById('multiplier-status').style.display = 'block'; }
-    else if (type === 'overdrive') { gameState.overdriveTimer = 180; document.getElementById('overdrive-status').style.display = 'block'; }
+    else if (type === 'multiplier') { gameState.multiplierTimer = CONFIG.POWERUP_DURATION_MULTIPLIER; document.getElementById('multiplier-status').style.display = 'block'; setPowerupTimer('multiplier-status', 1); }
+    else if (type === 'overdrive') { gameState.overdriveTimer = CONFIG.POWERUP_DURATION_OVERDRIVE; document.getElementById('overdrive-status').style.display = 'block'; setPowerupTimer('overdrive-status', 1); }
     else if (type === 'turret') { addTurret(); }
     else if (type === 'nuke') {
         const enemies = EntityManager.getEntitiesWith('Enemy');
@@ -218,13 +219,21 @@ function applyPowerup(type) {
     }
 }
 
+// Shared particle geometries: per-particle state (opacity) lives on the material, geometry is identical.
+const PARTICLE_GEO_SMALL = new THREE.PlaneGeometry(0.2, 0.2);
+const PARTICLE_GEO_THRUST = new THREE.PlaneGeometry(0.3, 0.3);
+
 function createExplosion(x, y, color, count = 15) {
+    // Particle budget: a nuke killing dozens of enemies must not spawn hundreds of meshes in one frame.
+    const existing = EntityManager.getEntitiesWith('Particle').length;
+    if (existing > 400) return;
+    count = Math.min(count, 450 - existing);
     for (let i = 0; i < count; i++) {
         const e = EntityManager.createEntity();
         EntityManager.addComponent(e, 'Position', { x: x, y: y });
         const angle = Math.random() * Math.PI * 2; const speed = 0.1 + Math.random() * 0.3;
         EntityManager.addComponent(e, 'Velocity', { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed });
-        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.2), new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 1 }));
+        const mesh = new THREE.Mesh(PARTICLE_GEO_SMALL, new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 1 }));
         scene.add(mesh);
         EntityManager.addComponent(e, 'Renderable', { mesh: mesh });
         EntityManager.addComponent(e, 'Particle', { life: 30 + Math.random() * 30, decay: 0.02, scaleDecay: 0.97, rotationSpeed: 0.1 });
@@ -239,7 +248,7 @@ function spawnThrust(x, y, rotationZ, color, offset = -0.5) {
     const vel = localOffset.clone().normalize().multiplyScalar(0.15 + Math.random() * 0.1);
     vel.applyAxisAngle(new THREE.Vector3(0, 0, 1), (Math.random() - 0.5) * 0.5);
     EntityManager.addComponent(e, 'Velocity', { x: vel.x, y: vel.y });
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.3), new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.8 }));
+    const mesh = new THREE.Mesh(PARTICLE_GEO_THRUST, new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.8 }));
     mesh.rotation.z = rotationZ + Math.PI; scene.add(mesh);
     EntityManager.addComponent(e, 'Renderable', { mesh: mesh });
     EntityManager.addComponent(e, 'Particle', { life: 15, decay: 0.05, scaleDecay: 0.9, rotationSpeed: 0 });

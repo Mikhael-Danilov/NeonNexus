@@ -78,11 +78,12 @@ async function initializeGame() {
     }
 }
 
-startButton.addEventListener('click', async () => {
-    await initAudio();
+startButton.addEventListener('click', () => {
+    // AudioContext resume can stall on mobile; start the game first and warm up audio in the background.
     gameStarted = true;
     startScreen.classList.remove('show');
     SFX.respawn();
+    initAudio();
 });
 
 playAgainButton.addEventListener('click', () => {

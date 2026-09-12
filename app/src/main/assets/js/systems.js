@@ -80,23 +80,32 @@ function updatePlayerSystem() {
     }
     
     const blinkBtn = document.getElementById('blink-button');
+    const blinkCd = document.getElementById('blink-cooldown');
     if (playerEntity.Player.blinkCooldown > 0) {
         playerEntity.Player.blinkCooldown--;
         const progress = 1 - (playerEntity.Player.blinkCooldown / CONFIG.BLINK_COOLDOWN);
-        blinkBtn.style.opacity = 0.3 + 0.7 * progress;
-        blinkBtn.style.pointerEvents = 'none';
+        blinkBtn.style.opacity = 0.75 + 0.25 * progress;
+        blinkCd.style.height = `${(playerEntity.Player.blinkCooldown / CONFIG.BLINK_COOLDOWN) * 100}%`;
     } else {
         blinkBtn.style.opacity = 1;
-        blinkBtn.style.pointerEvents = 'auto';
+        blinkCd.style.height = '0%';
     }
 
-    if (gameState.multiplierTimer > 0) { gameState.multiplierTimer--; if (gameState.multiplierTimer === 0) document.getElementById('multiplier-status').style.display = 'none'; }
-    if (gameState.overdriveTimer > 0) { gameState.overdriveTimer--; if (gameState.overdriveTimer === 0) document.getElementById('overdrive-status').style.display = 'none'; }
+    if (gameState.multiplierTimer > 0) {
+        gameState.multiplierTimer--;
+        setPowerupTimer('multiplier-status', gameState.multiplierTimer / CONFIG.POWERUP_DURATION_MULTIPLIER);
+        if (gameState.multiplierTimer === 0) document.getElementById('multiplier-status').style.display = 'none';
+    }
+    if (gameState.overdriveTimer > 0) {
+        gameState.overdriveTimer--;
+        setPowerupTimer('overdrive-status', gameState.overdriveTimer / CONFIG.POWERUP_DURATION_OVERDRIVE);
+        if (gameState.overdriveTimer === 0) document.getElementById('overdrive-status').style.display = 'none';
+    }
 }
 
 function updateMothershipSystem() {
-    mOuterRing.rotation.z += 0.005; mMidRing.rotation.z -= 0.008;
-    const pulse = 1 + Math.sin(frameCount * 0.05) * 0.05;
+    mOuterRing.rotation.z += 0.0025; mMidRing.rotation.z -= 0.004;
+    const pulse = 1 + Math.sin(frameCount * 0.05) * 0.03;
     mCore.scale.setScalar(pulse); mGlow.scale.setScalar(pulse * 1.2);
     if (mShieldMesh.material.opacity > 0) mShieldMesh.material.opacity -= 0.05;
 

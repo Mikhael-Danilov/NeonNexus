@@ -21,13 +21,20 @@ async function initAudio() {
     }
 }
 
+// Cap identical SFX per frame: mass kills (nuke) otherwise stack dozens of voices and crackle.
+let deathSfxFrame = -1, deathSfxCount = 0;
+function allowDeathSfx() {
+    if (frameCount !== deathSfxFrame) { deathSfxFrame = frameCount; deathSfxCount = 0; }
+    return ++deathSfxCount <= 3;
+}
+
 const SFX = {
     pulse: () => { if (!audioInitialized || !sfxSquare) return; try { sfxSquare.triggerAttackRelease(880, "32n"); } catch(e){} },
     spread: () => { if (!audioInitialized || !sfxSquare) return; try { sfxSquare.triggerAttackRelease(660, "32n"); setTimeout(() => sfxSquare && sfxSquare.triggerAttackRelease(550, "32n"), 30); setTimeout(() => sfxSquare && sfxSquare.triggerAttackRelease(440, "32n"), 60); } catch(e){} },
     laser: () => { if (!audioInitialized || !sfxSaw) return; try { sfxSaw.triggerAttackRelease(440, "32n"); } catch(e){} },
     missile: () => { if (!audioInitialized || !sfxTri) return; try { sfxTri.triggerAttackRelease(220, "32n"); } catch(e){} },
     hit: () => { if (!audioInitialized || !sfxSquare) return; try { sfxSquare.triggerAttackRelease(1500, "64n"); } catch(e){} },
-    death: () => { if (!audioInitialized || !sfxSquare || !sfxNoise) return; try { sfxSquare.triggerAttackRelease(440, "16n"); sfxNoise.triggerAttackRelease("16n"); } catch(e){} },
+    death: () => { if (!audioInitialized || !sfxSquare || !sfxNoise) return; if (!allowDeathSfx()) return; try { sfxSquare.triggerAttackRelease(440, "16n"); sfxNoise.triggerAttackRelease("16n"); } catch(e){} },
     playerHit: () => { if (!audioInitialized || !sfxSaw || !sfxNoise) return; try { sfxSaw.triggerAttackRelease(220, "4n"); sfxNoise.triggerAttackRelease("4n"); } catch(e){} },
     shieldHit: () => { if (!audioInitialized || !sfxSine || !sfxNoiseHat) return; try { sfxSine.triggerAttackRelease(800, "32n"); sfxNoiseHat.triggerAttackRelease("32n"); } catch(e){} },
     baseHit: () => { if (!audioInitialized || !sfxSaw || !sfxNoise) return; try { sfxSaw.triggerAttackRelease(110, "16n"); sfxNoise.triggerAttackRelease("16n"); } catch(e){} },

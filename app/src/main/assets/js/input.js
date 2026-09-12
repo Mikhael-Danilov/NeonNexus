@@ -81,31 +81,42 @@ function updatePointerFromEvent(event) {
     }
 }
 
+const shootFrustum = new THREE.Frustum();
+const shootFrustumMatrix = new THREE.Matrix4();
+const shootFrustumBox = new THREE.Box3();
+
 function checkIsShootTarget(target) {
     let nearestDist = Infinity;
     const enemies = EntityManager.getEntitiesWith('Enemy', 'Position');
     if (enemies.length === 0) return false;
-    
+
+    // Only enemies actually on screen count: frustum from the camera's current zoom/position.
+    shootFrustumMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    shootFrustum.setFromProjectionMatrix(shootFrustumMatrix);
+
     const playerPos = new THREE.Vector3(playerEntity.Position.x, playerEntity.Position.y, 0);
     const tapDir = new THREE.Vector3().subVectors(target, playerPos).normalize();
-    
+
     let hasAlignedEnemy = false;
     enemies.forEach(e => {
+        shootFrustumBox.setFromCenterAndSize(new THREE.Vector3(e.Position.x, e.Position.y, 0), new THREE.Vector3(2 + CONFIG.AUTO_SHOOT_ZONE_MARGIN, 2 + CONFIG.AUTO_SHOOT_ZONE_MARGIN, 1));
+        if (!shootFrustum.intersectsBox(shootFrustumBox)) return;
+
         const d = Math.hypot(e.Position.x - target.x, e.Position.y - target.y);
         if (d < nearestDist) nearestDist = d;
-        
+
         const enemyVec = new THREE.Vector3(e.Position.x, e.Position.y, 0).sub(playerPos);
         const enemyDist = enemyVec.length();
-        if (enemyDist < 28) {
+        if (enemyDist < CONFIG.AUTO_SHOOT_ZONE_RANGE) {
             const enemyDir = enemyVec.clone().normalize();
-            if (tapDir.angleTo(enemyDir) < Math.PI / 4) {
+            if (tapDir.angleTo(enemyDir) < CONFIG.AUTO_SHOOT_ZONE_CONE) {
                 hasAlignedEnemy = true;
             }
         }
     });
-    
-    // Generous shoot zone: within 8.0 world units of any enemy or aimed in an enemy's cone
-    return (nearestDist < 8.0 || hasAlignedEnemy);
+
+    // Shoot zone: tap near a visible enemy or aimed into a visible enemy's cone
+    return (nearestDist < CONFIG.AUTO_SHOOT_ZONE_RADIUS || hasAlignedEnemy);
 }
 
 function onPointerMove(event) {
@@ -195,7 +206,13 @@ function onPointerUp(event) {
 
 function triggerBlink() {
     if (!gameStarted || gameState.isGameOver || gameState.isPaused) return;
-    if (playerEntity.Player.blinkCooldown > 0) return;
+    if (playerEntity.Player.blinkCooldown > 0) {
+        const btn = document.getElementById('blink-button');
+        btn.classList.remove('blink-shake');
+        void btn.offsetWidth;
+        btn.classList.add('blink-shake');
+        return;
+    }
     
     const oldPos = new THREE.Vector3(playerEntity.Position.x, playerEntity.Position.y, 0);
     

@@ -56,20 +56,31 @@ function updateModeVisuals() {
     }
 }
 
+function setPowerupTimer(id, fraction) {
+    const el = document.querySelector('#' + id + ' .powerup-timer');
+    if (el) el.style.width = `${Math.max(0, Math.min(1, fraction)) * 100}%`;
+}
 function updateMothershipUI() {
     const bar = document.getElementById('mothership-health-bar');
     const percent = Math.max(0, (gameState.mothershipHealth / CONFIG.MOTHERSHIP_MAX_HP) * 100);
-    
+
     const currentHeight = parseFloat(bar.style.height) || 100;
     const tweenObj = { h: currentHeight };
     new TWEEN.Tween(tweenObj)
         .to({ h: percent }, 200)
         .onUpdate(() => { bar.style.height = `${tweenObj.h}%`; })
         .start();
-        
-    if (percent < 30) bar.style.background = '#ff0044'; 
-    else if (percent < 60) bar.style.background = '#ffaa00'; 
+
+    if (percent < 30) bar.style.background = '#ff0044';
+    else if (percent < 60) bar.style.background = '#ffaa00';
     else bar.style.background = '#ff8800';
+
+    const pct = document.getElementById('mothership-pct');
+    pct.textContent = `${Math.round(percent)}%`;
+    pct.style.color = bar.style.background;
+    const container = document.getElementById('mothership-bar-container');
+    if (percent < 25) container.classList.add('critical');
+    else container.classList.remove('critical');
 }
 
 function toggleMode() {
@@ -103,6 +114,7 @@ function updateScore(points, killX, killY) {
     updateUI();
 }
 function spawnWorldCombo(worldX, worldY, combo) {
+    if (document.querySelectorAll('.world-combo').length > 12) return;
     const v = new THREE.Vector3(worldX, worldY, 0).project(camera);
     const el = document.createElement('div');
     el.className = 'world-combo';
