@@ -2,8 +2,10 @@ package com.nyrds.neonnexus
 
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -18,6 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 class MainActivity : ComponentActivity() {
   private var webView: WebView? = null
@@ -25,6 +29,13 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      window.attributes = window.attributes.apply {
+        layoutInDisplayCutoutMode =
+          WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+      }
+    }
+    hideSystemBars()
     setContent {
       Box(
         modifier = Modifier
@@ -36,6 +47,22 @@ class MainActivity : ComponentActivity() {
         )
       }
     }
+  }
+
+  override fun onWindowFocusChanged(hasFocus: Boolean) {
+    super.onWindowFocusChanged(hasFocus)
+    if (hasFocus) hideSystemBars()
+  }
+
+  // Immersive fullscreen: with 3-button navigation enabled the system nav bar is
+  // rotated to the right edge in landscape and overlays the WebView there, hiding
+  // the game's info/MODE buttons and swallowing their taps. Hide the bars instead;
+  // BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE brings them back edge-swipe, auto-hidden.
+  private fun hideSystemBars() {
+    val controller = WindowInsetsControllerCompat(window, window.decorView)
+    controller.systemBarsBehavior =
+      WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    controller.hide(WindowInsetsCompat.Type.systemBars())
   }
 
   @Deprecated("Deprecated in Java")
