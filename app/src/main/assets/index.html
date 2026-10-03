@@ -386,6 +386,13 @@
     <script src="js/systems.js?v=13"></script>
     <script src="js/ui.js?v=13"></script>
     <script src="js/main.js?v=13"></script>
+    <script src="js/vk-bridge.min.js"></script>
+    <script>
+        // VK mini-app launch: tell the platform we're up so its spinner clears
+        if (/vk_app_id/.test(location.search) && window.vkBridge && window.vkBridge.send) {
+            try { window.vkBridge.send('VKWebAppInit').catch(function () {}); } catch (e) {}
+        }
+    </script>
 
 </body>
 </html>

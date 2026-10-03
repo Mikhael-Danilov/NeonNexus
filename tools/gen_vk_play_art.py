@@ -276,6 +276,22 @@ def main():
         print(f"legacy/{name:26s} {(46, 46) if '46' in name else (256, 256)!s:12s} "
               f"{os.path.getsize(p)//1024} KB")
 
+    # VK mini-app catalog («Оформление» on dev.vk.ru) — same set the quiz uses
+    cat = os.path.join(OUT, "vk-catalog")
+    os.makedirs(cat, exist_ok=True)
+    save(render(1120, 630, lambda w, h: scene_text(w, h, text_w=0.52)),
+         "snippet-1120x630.png", cat)
+    for side in (150, 278, 576):
+        icon.resize((side, side), Image.LANCZOS).save(os.path.join(cat, f"icon-{side}.png"),
+                                                      optimize=True)
+    icon.resize((32, 32), Image.LANCZOS).save(os.path.join(cat, "favicon-32.png"),
+                                              optimize=True)
+    for name in ("snippet-1120x630.png", "icon-150.png", "icon-278.png",
+                 "icon-576.png", "favicon-32.png"):
+        p = os.path.join(cat, name)
+        im = Image.open(p)
+        print(f"vk-catalog/{name:24s} {str(im.size):12s} {os.path.getsize(p)//1024} KB")
+
 
 if __name__ == "__main__":
     main()
