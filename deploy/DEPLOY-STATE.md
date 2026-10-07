@@ -19,23 +19,26 @@ Host: `nyrds@45.132.176.250` (ssh key `~/.ssh/id_rsa_laptop`), serves
 - Verified: `/api/health` → `{"ok":true}` (local + public); static assets,
   `privacy.html`, `img/noads-256.png`, woff2 (correct `font/woff2` MIME).
 
-## Remaining (blocked on VK 2FA — needs the account owner)
+## Done later the same evening
 
-1. Fill `/var/www/neon-nexus-api/backend/.env` (chmod 600, owner nyrds) with
-   the real keys: dev.vk.com → Neon Nexus (54802003) → Настройки → Разработка
-   → Ключи доступа → «Показать» under Защищённый ключ / Сервисный ключ.
-   The reveal demands phone validation (error 6100, push to the phone's VK
-   app) — confirmed via `devAdmin.getAppSecretKey`, not bypassable.
-   Then: `sudo systemctl restart neonnexus-api`.
-2. Console URLs (do together with step 1):
+- Real keys filled into `backend/.env` (owner completed the 2FA reveal),
+  service restarted. End-to-end verified with correctly signed probes:
+  `get_item` → catalog answer (title «Отключить рекламу», 15 голосов,
+  photo, expiration 600), `order_status_change_test` chargeable → nested
+  `{"response":{"order_id":N}}` + grant, `/api/vk/entitled` → `noads:true`,
+  bad sig → error 10; service token validated via `orders.get` (empty list).
+  Test grant removed afterwards — `entitlements.json` is empty again.
+
+## Remaining
+
+1. Console URLs (dev.vk.com):
    - «URL для платёжных уведомлений ВКонтакте»:
      `https://ru.nyrds.net/neon-nexus/api/vk/order`
    - iframe/загрузка URL: `https://ru.nyrds.net/neon-nexus/`
-3. Main-admin test buy (VK votes, tester mode) → verify `get_item` answers
-   and the grant lands in `entitlements.json`.
-4. Then catalog submission per `VK-MINIAPP-CATALOG.md` §4.
+2. Main-admin test buy (VK votes, tester mode) → verify the real order lands
+   in `entitlements.json`.
+3. Then catalog submission per `VK-MINIAPP-CATALOG.md` §4.
 
-Until step 1 is done the API answers `/api/health` normally but payment
-callbacks return `{"error_code":300,"payments not configured"}` and
-`/api/vk/entitled` reports not configured — deliberate clean failure, no
-secrets on disk.
+Probe gotcha that cost time: the get_item/chargeable signature base is the
+key-sorted `k=v` CONCATENATION WITHOUT `&` separators — hashing the query
+string (with `&`) produces a valid-looking but rejected signature.
