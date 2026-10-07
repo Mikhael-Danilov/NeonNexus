@@ -63,6 +63,11 @@ async function initializeGame() {
         }
         updateModeVisuals(); updateWeaponUI(); updateHighScoreUI(); updateUI(); updateMothershipUI();
 
+        // VK mini-app layer: wire the noads button, then merge cloud progress
+        // (rule 2.3.8) into the freshly loaded local state
+        if (window.VKSync) VKSync.init();
+        updateSoundButtons();
+
         updateProgress(100, "Ready to launch.");
         setTimeout(() => {
             loadingScreen.style.opacity = 0;
@@ -89,6 +94,33 @@ startButton.addEventListener('click', () => {
 playAgainButton.addEventListener('click', () => {
     location.reload();
 });
+
+// ---------------- sound toggle (rule 2.2.5) ----------------
+function toggleSound() {
+    SFX.setMuted(!SFX.isMuted());
+    updateSoundButtons();
+}
+function updateSoundButtons() {
+    const icon = SFX.isMuted() ? '🔇' : '🔊';
+    document.querySelectorAll('.sound-toggle').forEach(b => { b.textContent = icon; });
+}
+document.querySelectorAll('.sound-toggle').forEach(b => b.addEventListener('click', toggleSound));
+
+// ---------------- in-run menu exit (two-tap confirm, like the quiz's ⌂ pill) ----------------
+const menuButton = document.getElementById('menu-button');
+if (menuButton) {
+    let menuArmTimer = null;
+    menuButton.addEventListener('click', () => {
+        if (menuButton.classList.contains('armed')) { location.reload(); return; }
+        menuButton.classList.add('armed');
+        menuButton.textContent = 'EXIT?';
+        clearTimeout(menuArmTimer);
+        menuArmTimer = setTimeout(() => {
+            menuButton.classList.remove('armed');
+            menuButton.textContent = '⌂ MENU';
+        }, 3000);
+    });
+}
 
 initializeGame();
 

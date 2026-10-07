@@ -87,6 +87,26 @@
         .inst-tag { color: #00ffff; font-weight: bold; font-size: 0.85rem; letter-spacing: 1px; text-shadow: 0 0 6px #00ffff; }
         .inst-desc { color: #ccddee; font-size: 0.8rem; letter-spacing: 0.5px; }
 
+        #start-sound-button {
+            margin-top: 14px;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(10, 15, 25, 0.85); border: 1.5px solid #00ffff; color: #00ffff;
+            font-size: 1.2rem; cursor: pointer; touch-action: manipulation;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.4); transition: all 0.2s;
+        }
+        #start-sound-button:hover { transform: scale(1.08); box-shadow: 0 0 16px rgba(0, 255, 255, 0.7); }
+
+        #noads-button {
+            margin-top: 14px;
+            padding: 7px 20px; font-size: 0.85rem; font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace;
+            color: #ffaa00; background: transparent; border: 1.5px solid #ffaa00;
+            clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+            cursor: pointer; touch-action: manipulation; letter-spacing: 1px;
+            box-shadow: 0 0 8px rgba(255, 170, 0, 0.35); transition: all 0.2s;
+        }
+        #noads-button:hover { background: rgba(255, 170, 0, 0.15); box-shadow: 0 0 14px rgba(255, 170, 0, 0.6); }
+        #noads-button[disabled] { opacity: 0.5; cursor: wait; }
+
         #game-container { position: relative; width: 100%; height: 100%; }
         #hud-left, #hud-right {
             position: absolute; top: 0; height: 100%; display: flex; 
@@ -208,9 +228,9 @@
         }
         
         #game-canvas { width: 100%; height: 100vh; display: block; background: #000000; }
-        
-        #info-container { flex-shrink: 0; }
-        #info-button {
+
+        #info-container { flex-shrink: 0; display: flex; gap: 6px; }
+        #info-button, #sound-button {
             width: 36px; height: 36px;
             background: rgba(10, 15, 25, 0.85); border: 1.5px solid #00ffff; color: #00ffff;
             font-size: 1.1rem; font-weight: bold; cursor: pointer;
@@ -220,7 +240,19 @@
             font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace;
             transition: all 0.2s;
         }
-        #info-button:hover { background: #00ffff; color: #000; box-shadow: 0 0 15px #00ffff; }
+        #info-button:hover, #sound-button:hover { background: #00ffff; color: #000; box-shadow: 0 0 15px #00ffff; }
+        #sound-button { font-size: 0.95rem; }
+
+        #menu-button {
+            width: 65px; height: 34px; flex-shrink: 0;
+            background: rgba(10, 15, 25, 0.85); border: 1.5px solid #445; color: #8899aa;
+            clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+            font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace; font-weight: bold; font-size: 0.7rem;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; touch-action: manipulation; letter-spacing: 1px;
+        }
+        #menu-button:hover { border-color: #00ffff; color: #00ffff; }
+        #menu-button.armed { border-color: #ff0044; color: #ff0044; box-shadow: 0 0 12px rgba(255, 0, 68, 0.6); }
         
         #info-modal {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -297,6 +329,8 @@
     <div id="start-screen">
         <div id="start-title">NEON NEXUS<br>DEFEND THE MOTHERSHIP</div>
         <button id="start-button">START GAME</button>
+        <button id="start-sound-button" class="sound-toggle">🔊</button>
+        <button id="noads-button" style="display:none">✕ DISABLE ADS</button>
         <div id="start-instructions">
             <div class="inst-row"><span class="inst-tag">TAP / DRAG</span> <span class="inst-desc">AUTO MOVE OR SHOOT</span></div>
             <div class="inst-row"><span class="inst-tag">MODE BTN</span> <span class="inst-desc">SWITCH AUTO / MOVE / SHOOT</span></div>
@@ -307,6 +341,7 @@
 
     <div id="game-container">
         <div id="hud-left">
+            <button id="menu-button">⌂ MENU</button>
             <div id="weapon-selector">
                 <div class="weapon-slot active" data-weapon="pulse">1</div>
                 <div class="weapon-slot locked" data-weapon="laser">2</div>
@@ -320,6 +355,7 @@
 
         <div id="hud-right">
             <div id="info-container">
+                <button id="sound-button" class="sound-toggle">🔊</button>
                 <button id="info-button">i</button>
             </div>
             
@@ -376,23 +412,18 @@
     <script src="js/CopyShader.js"></script>
     <script src="js/LuminosityHighPassShader.js"></script>
     <script src="js/UnrealBloomPass.js"></script>
-
-    
-    <script src="js/engine.js?v=13"></script>
-    <script src="js/graphics.js?v=13"></script>
-    <script src="js/audio.js?v=13"></script>
-    <script src="js/input.js?v=13"></script>
-    <script src="js/entities.js?v=13"></script>
-    <script src="js/systems.js?v=13"></script>
-    <script src="js/ui.js?v=13"></script>
-    <script src="js/main.js?v=13"></script>
     <script src="js/vk-bridge.min.js"></script>
-    <script>
-        // VK mini-app launch: tell the platform we're up so its spinner clears
-        if (/vk_app_id/.test(location.search) && window.vkBridge && window.vkBridge.send) {
-            try { window.vkBridge.send('VKWebAppInit').catch(function () {}); } catch (e) {}
-        }
-    </script>
+
+
+    <script src="js/engine.js?v=14"></script>
+    <script src="js/graphics.js?v=14"></script>
+    <script src="js/audio.js?v=14"></script>
+    <script src="js/input.js?v=14"></script>
+    <script src="js/entities.js?v=14"></script>
+    <script src="js/systems.js?v=14"></script>
+    <script src="js/vk.js?v=14"></script>
+    <script src="js/ui.js?v=14"></script>
+    <script src="js/main.js?v=14"></script>
 
 </body>
 </html>

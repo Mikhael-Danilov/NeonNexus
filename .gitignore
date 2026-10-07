@@ -23,3 +23,9 @@ debug.keystore
 /upload-key-cert.pem
 /keystore-credentials.txt
 /play-service-account*.json
+
+# Neon Nexus entitlement service state (runtime data)
+backend/entitlements.json
+backend/entitlements.tmp
+backend/__pycache__/
+backend/.venv/

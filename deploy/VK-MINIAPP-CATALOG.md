@@ -54,6 +54,41 @@ description (≤108), full description, category «Игры → Аркады», 
 age label **6+**. Privacy policy URL: `https://<host>/neon-nexus/privacy.html`.
 Submit; paste the moderator comment from the RU file.
 
+## 4b. Payments / ads wiring (VK only)
+
+The VK flavor of the build shows an interstitial after every 2nd finished
+game (`VKWebAppShowNativeAds`) and sells a one-time «disable ads» for votes
+(`VKWebAppShowOrderBox`, good **`noads`**, 15 votes — price lives in
+`backend/app.py` as `NN_NOADS_PRICE`). Console setup:
+
+1. Deploy the entitlement service (the goods catalog IS the `get_item`
+   callback — there is no goods registry in any console):
+
+   ```bash
+   rsync -av backend/ user@your-host:/var/www/neon-nexus-api/backend/
+   ssh user@your-host
+   cd /var/www/neon-nexus-api/backend
+   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+   # .env: VK_APP_SECRET=<защищённый ключ>, VK_SERVICE_TOKEN=<сервисный ключ>
+   cp ../deploy/neonnexus-api.service /etc/systemd/system/   # adjust User/paths
+   systemctl daemon-reload && systemctl enable --now neonnexus-api
+   curl -s http://127.0.0.1:8017/api/health     # {"ok":true}
+   ```
+
+2. dev.vk.com → app settings → «URL для платёжных уведомлений ВКонтакте»:
+   `https://<host>/neon-nexus/api/vk/order` (GET and POST both handled:
+   `get_item`, `order_status_change`, tester `_test` variants, orders.get
+   fallback for the html-escape sig quirk — all per the quiz-proven
+   protocol; see the header of `backend/app.py`).
+
+3. nginx: the `^~ /neon-nexus/api/` location in
+   `deploy/nginx-vkplay.conf.example` proxies to 127.0.0.1:8017.
+
+4. Ads: no console setup exists — `VKWebAppShowNativeAds` serves
+   automatically once the app is catalogued; before that requests may
+   no-fill silently (expected). Payout office (Настройки → Монетизация,
+   cashout.vk.com, creator-only) makes the revenue payable.
+
 ## 5. Moderation checklist mapped to the game
 
 Rules referenced by number are the catalog rules the quiz was dinged on in
@@ -63,22 +98,23 @@ its round-1 review — expect the same reviewer attention.
 |---|---|
 | Launches, no extra installs | static site, `VKWebAppInit` on launch ✓ |
 | Third-party links / sharing | none anywhere in the UI ✓ (no share feature at all) |
-| Exit to menu | start screen shows controls; game over → «PLAY AGAIN» reloads to the start screen. **No in-run exit button** — a reviewer may ask for one (quiz's remark #3; their fix: a two-tap «⌂ Меню» pill). Add if flagged. |
-| Sound off control (2.2.5) | **MISSING** — no mute toggle in the HUD (Tone.js synths, no mute). High-risk remark; fix = a 🔊/🔇 button calling `Tone.Destination.mute`, preference persisted next to the high scores. |
-| Progress sync across platforms (2.3.8) | **RISK** — high scores + kill counts live only in `localStorage`. The quiz was rejected over this; fix = mirror both keys through `VKWebAppStorageSet/Get` with merge-on-load (quiz's implementation is the reference). |
-| Monetization (4.2.1) | no payments, no ads — if the reviewer demands monetization for a game listing (the quiz hit this), the minimal answer is VK native ads via `VKWebAppShowNativeAds` (`reward` on the blink cooldown / `interstitial` after game over); payout office is creator-only, cashout.vk.com. Decide before submitting, not after. |
+| Exit to menu (quiz remark #3) | ⌂ MENU pill top-left, two-tap confirm → reload to the start screen; «PLAY AGAIN» also returns there ✓ |
+| Sound off control (2.2.5) | 🔊/🔇 on the start screen and in the HUD (next to `i`), mutes Tone's master output, preference persisted + synced ✓ |
+| Progress sync across platforms (2.3.8) | high scores, kill counts, sound and the noads flag are mirrored through `VKWebAppStorageSet/Get` (`nn-*` keys), merged by maximum on every load ✓ |
+| Monetization (4.2.1) | interstitial after every 2nd game + one-time `noads` purchase (15 votes) ✓ — `get_item`/order callbacks must be live before submission |
 | Age labeling | 6+ in the questionnaire ✓ |
 | Privacy policy URL | required field; `privacy.html` ships with the build ✓ |
 
-The two bolded gaps are code changes, not listing text — do them before
-submission if you want a calm first review, otherwise be ready to resubmit
-(a catalog rejection just returns the app to editing, nothing is lost).
+Everything above is implemented; the pre-submission work left is purely
+operational (deploy the API service, set the two console URLs). A catalog
+rejection just returns the app to editing, nothing is lost.
 
 ## 6. After approval
 
 * Catalog page goes live; the game keeps working via the direct link either way.
-* Follow-ups in order of value: platform leaderboards (`VKWebAppStorage` first —
-  it doubles as the 2.3.8 fix), achievements, VK votes IAP if we monetize
-  (order-box protocol notes live in the global AGENTS.md), OK publication of
-  the same mini app (OK launcher translates the VK bridge; the quiz is
-  published to OK this way).
+* Register the payout office (app settings → «Монетизация», creator-only) so
+  ad/IAP revenue becomes payable.
+* Follow-ups: platform leaderboards, achievements, OK publication of the
+  same mini app (OK's launcher translates the VK bridge including
+  `VKWebAppShowOrderBox`; the quiz is published to OK this way — protocol
+  notes in the global AGENTS.md).

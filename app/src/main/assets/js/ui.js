@@ -95,6 +95,7 @@ function addHighScore(score) {
     gameState.highScores.push(score); gameState.highScores.sort((a, b) => b - a);
     gameState.highScores = gameState.highScores.slice(0, 5);
     localStorage.setItem('neonNexusHighScores', JSON.stringify(gameState.highScores));
+    if (window.VKSync) VKSync.pushSoon();
     updateHighScoreUI();
 }
 function updateHighScoreUI() {
@@ -138,9 +139,10 @@ function hitPlayer() {
     gameOver(false);
 }
 function gameOver(isMothershipDead) {
-    SFX.playerHit(); 
+    SFX.playerHit();
     gameState.isGameOver = true;
     addHighScore(gameState.score);
+    if (window.VKSync) { VKSync.pushNow(); VKSync.maybeInterstitial(); }
     
     const gameOverText = document.getElementById('game-over-text');
     if (isMothershipDead) {

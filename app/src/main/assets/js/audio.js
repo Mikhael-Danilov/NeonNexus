@@ -2,6 +2,15 @@
 // ============================================
 let audioInitialized = false;
 let sfxSquare, sfxSaw, sfxTri, sfxSine, sfxNoise, sfxNoiseHat;
+// sound-off preference (catalog rule 2.2.5) — survives via localStorage and
+// (inside VK) the nn-sound key synced in vk.js; applied to Tone's master out
+let soundMuted = (function () {
+    try { return localStorage.getItem('neonNexusSound') === '1'; } catch (e) { return false; }
+})();
+
+function applySoundMute() {
+    if (typeof Tone !== 'undefined') Tone.Destination.mute = soundMuted;
+}
 
 async function initAudio() {
     if (audioInitialized || typeof Tone === 'undefined') return;
@@ -16,6 +25,7 @@ async function initAudio() {
         sfxNoiseHat = new Tone.NoiseSynth({ noise: { type: "white" }, envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.05 }, volume: -15 });
         const sfxHatFilter = new Tone.Filter(7000, "highpass").toDestination(); sfxNoiseHat.connect(sfxHatFilter);
         audioInitialized = true;
+        applySoundMute();
     } catch (e) {
         console.warn("Audio init failed:", e);
     }
@@ -43,7 +53,15 @@ const SFX = {
     modeSwitch: () => { if (!audioInitialized || !sfxSquare) return; try { sfxSquare.triggerAttackRelease(800, "64n"); setTimeout(() => sfxSquare && sfxSquare.triggerAttackRelease(1000, "64n"), 30); } catch(e){} },
     unlock: () => { if (!audioInitialized || !sfxSquare) return; try { sfxSquare.triggerAttackRelease(523.25, "16n"); setTimeout(() => sfxSquare && sfxSquare.triggerAttackRelease(659.25, "16n"), 80); setTimeout(() => sfxSquare && sfxSquare.triggerAttackRelease(783.99, "16n"), 160); setTimeout(() => sfxSquare && sfxSquare.triggerAttackRelease(1046.50, "16n"), 240); } catch(e){} },
     respawn: () => { if (!audioInitialized || !sfxSine) return; try { sfxSine.triggerAttackRelease(440, "16n"); setTimeout(() => sfxSine && sfxSine.triggerAttackRelease(660, "16n"), 100); } catch(e){} },
-    blink: () => { if (!audioInitialized || !sfxSine) return; try { sfxSine.triggerAttackRelease(1200, "32n"); setTimeout(() => sfxSine && sfxSine.triggerAttackRelease(800, "32n"), 40); } catch(e){} }
+    blink: () => { if (!audioInitialized || !sfxSine) return; try { sfxSine.triggerAttackRelease(1200, "32n"); setTimeout(() => sfxSine && sfxSine.triggerAttackRelease(800, "32n"), 40); } catch(e){} },
+    // fromSync: the value came from the VK cloud read in vk.js — don't push it back
+    setMuted: (muted, fromSync) => {
+        soundMuted = !!muted;
+        try { localStorage.setItem('neonNexusSound', muted ? '1' : '0'); } catch (e) {}
+        applySoundMute();
+        if (!fromSync && window.VKSync) VKSync.pushSoon();
+    },
+    isMuted: () => soundMuted
 };
 
 // ============================================

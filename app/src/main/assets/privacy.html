@@ -18,22 +18,26 @@
 
 <h2>Какие данные обрабатываются</h2>
 <ul>
-  <li><b>Игровые рекорды</b> (таблица результатов и суммарный счёт фрагов) — хранятся только в локальном хранилище вашего браузера (localStorage) и никуда не отправляются.</li>
-  <li><b>Параметры запуска</b>, которые платформа добавляет к адресу игры (подпись, идентификатор пользователя и т. п.), используются только для служебного подтверждения запуска внутри VK и Игрой не обрабатываются и не сохраняются.</li>
+  <li><b>Игровой прогресс</b> (таблица рекордов, суммарный счёт фрагов, настройка звука) — хранится в локальном хранилище вашего браузера (localStorage); при запуске внутри VK дополнительно синхронизируется с сервисом хранения VK (<b>VKWebAppStorage</b>) в привязке к вашему аккаунту VK, чтобы прогресс был одинаковым на всех платформах.</li>
+  <li><b>Покупка отключения рекламы</b> (только внутри VK) — факт покупки хранится на сервере разработчика в виде идентификатора пользователя VK и номера заказа; сам платёж выполняет платформа VK.</li>
+  <li><b>Параметры запуска</b>, которые платформа добавляет к адресу игры (подпись, идентификатор пользователя и т. п.), используются для служебного подтверждения запуска и сверки покупки; на сервере разработчика они не хранятся.</li>
   <li>Игра <b>не собирает</b> имя, телефон, e-mail, геолокацию, контакты и не передаёт данные третьим лицам.</li>
-  <li>Игра <b>не использует</b> аналитические счётчики, файлы cookie для отслеживания и рекламные модули.</li>
+  <li>Игра <b>не использует</b> аналитические счётчики и файлы cookie для отслеживания.</li>
 </ul>
 
+<h2>Реклама</h2>
+<p>В версии внутри VK после каждой второй завершённой игры показывается рекламное объявление (его можно отключить разовой покупкой). Показ и оплату рекламы выполняет рекламная платформа VK; обработка данных в ходе показа регулируется политикой конфиденциальности VK: <a href="https://vk.com/privacy">vk.com/privacy</a>. В версиях вне VK (отдельная ссылка, VK Play) реклама отсутствует.</p>
+
 <h2>Где хранятся данные</h2>
-<p>У Игры нет собственного сервера: страница и все ресурсы — статические файлы, весь игровой процесс выполняется в вашем браузере.</p>
+<p>Игра — статические файлы; игровой процесс выполняется в вашем браузере. Единственный серверный компонент — сервис подтверждения покупок внутри VK, хранящий только идентификатор пользователя VK и номер заказа.</p>
 
 <h2>Удаление данных</h2>
-<p>Рекорды удаляются вместе с данными сайта: очистите данные браузера для адреса Игры (или удалите Игру из своих приложений VK, если играете внутри VK).</p>
+<p>Рекорды удаляются вместе с данными сайта: очистите данные браузера для адреса Игры. Синхронизированная копия в хранилище VK удаляется вместе с Приложением: удалите Игру из своих приложений VK. По вопросам обработки данных пишите разработчику через страницу игры.</p>
 
 <h2>Изменения</h2>
 <p>Актуальная версия всегда доступна по этому адресу. Дата последнего обновления: 07.10.2026.</p>
 
 <hr>
-<p class="en">EN summary: Neon Nexus stores only your high scores and total kill count in your browser's local storage; nothing is sent anywhere — the game has no server. VK launch parameters are used only to confirm the launch inside VK and are not processed or stored. No personal data, no analytics, no tracking cookies, no ads, no third-party transfers. Clearing the site data removes your records.</p>
+<p class="en">EN summary: Neon Nexus keeps your game progress (high scores, kill count, sound preference) in your browser's local storage; when launched inside VK it is also synced to VK's per-user storage (VKWebAppStorage) so progress follows your VK account across platforms. Inside VK an interstitial ad shows after every second finished game and can be removed with a one-time votes purchase; the developer's server stores only your VK user id and the order id for that entitlement. VK launch parameters are used to confirm the launch and verify the purchase and are not stored on the developer's server. No personal data, no analytics, no tracking cookies, no third-party transfers; ads are served by VK's platform (vk.com/privacy) and only in the VK version. Clearing the site data removes your local records.</p>
 </body>
 </html>

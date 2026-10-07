@@ -71,7 +71,10 @@ function damageEnemy(enemy, damage) {
         EntityManager.removeEntity(enemy);
         updateScore(enemy.Enemy.points, killX, killY);
         gameState.totalKills++;
-        if (gameState.totalKills % 10 === 0) localStorage.setItem('neonNexusTotalKills', gameState.totalKills);
+        if (gameState.totalKills % 10 === 0) {
+            localStorage.setItem('neonNexusTotalKills', gameState.totalKills);
+            if (window.VKSync) VKSync.pushSoon();
+        }
         checkWeaponUnlocks();
     } else {
         SFX.hit();

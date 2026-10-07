@@ -1,0 +1,39 @@
+# systemd unit for the Neon Nexus entitlement service (VK votes IAP, `noads`).
+# Adjust User, WorkingDirectory and the venv path to your VPS layout, then:
+#   cp deploy/neonnexus-api.service /etc/systemd/system/
+#   systemctl daemon-reload && systemctl enable --now neonnexus-api
+#
+# Setup (dev.vk.com → the mini app):
+#   - «Настройки» → «Ключи доступа»: copy «защищённый ключ» and «сервисный
+#     ключ» into backend/.env on the VPS as VK_APP_SECRET and VK_SERVICE_TOKEN
+#     (the unit below loads that file; VK_APP_ID is set in the override):
+#       systemctl edit neonnexus-api
+#         [Service]
+#         Environment=VK_APP_ID=<app id>
+#         EnvironmentFile=/var/www/neon-nexus-api/backend/.env
+#       systemctl restart neonnexus-api
+#   - «Настройки» → «URL для платёжных уведомлений ВКонтакте»:
+#       https://<host>/neon-nexus/api/vk/order
+#   The order state lives in NN_DATA_DIR/entitlements.json (default: the
+#   working directory) — keep it on the ReadWritePaths side.
+
+[Unit]
+Description=Neon Nexus entitlement API (VK IAP noads)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/neon-nexus-api/backend
+Environment=NN_DATA_DIR=/var/www/neon-nexus-api/backend
+ExecStart=/var/www/neon-nexus-api/backend/.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8017
+Restart=on-failure
+RestartSec=3
+
+# hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/neon-nexus-api/backend
+
+[Install]
+WantedBy=multi-user.target

@@ -20,9 +20,12 @@ Key platform facts (from the docs, 2026-10):
 * The platform appends `?sign=…&uid=…&appid=…&currency=…&lang=…` to the iframe
   URL. Neon Nexus ignores query params and works as-is.
 * JS API (postMessage) is only needed for platform auth / registration /
-  payments. **Not integrated in v1**: the game is fully client-side, saves
-  high scores in `localStorage`, has no payments. Revisit if we add
-  leaderboards or IAP.
+  payments — VK Play needs none of it, and nothing here runs on VK Play:
+  the vendored vk-bridge and everything behind it (`js/vk.js`: init, save
+  sync, interstitial ads, the `noads` purchase) is gated on the `vk_app_id`
+  launch param, which only the vk.com mini-app flavor sets. The VK Play
+  page serves the same static files and gets the plain, ad-free, payment-free
+  build.
 * Moderation: technical ≤5 working days, then marketing ≤3 (queues, not
   durations). A tech rejection resets the project to «Конфигурация» — fix and
   resubmit.
@@ -104,7 +107,7 @@ able to actually play it).
 | Settings persist | sound/mode preferences persist per browser session of the page |
 | No critical bugs | release smoke test `scripts/release-smoke-test.py` + CI screenshots |
 | Enough content | 4 weapons, 7 enemy types, powerups, turrets, combo system, endless scaling |
-| No third-party payments / SDKs / external links | none; no ads in the web build (AdMob is Android-Play-only and must stay out) |
+| No third-party payments / SDKs / external links | none reachable from VK Play: the vk-bridge code in the bundle is gated on the `vk_app_id` param (vk.com mini-app flavor only) — no ads, no purchases, no external requests fire here (AdMob is Android-Play-only and must stay out) |
 | Age labeling | 6+, see listing |
 
 ### Marketing moderation checklist
