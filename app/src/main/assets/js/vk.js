@@ -322,9 +322,67 @@ var VKSync = (function () {
         } catch (e) {}
     }
 
+    // ---------------- global leaderboard (best single game) ----------------
+    // VK records points only server-side (secure.addAppEvent, cumulative) —
+    // POST each finished game's score; the backend keeps the per-user best
+    // and submits only the delta, so the board value = best single game.
+
+    function submitScore(gameScore) {
+        if (!inVk) return;
+        try {
+            fetch(API + 'vk/score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    score: Math.floor(gameScore) || 0,
+                    lp: location.search.slice(1)
+                })
+            }).catch(function () {});
+        } catch (e) {}
+    }
+
+    // ---------------- game-over actions (VK only) ----------------
+
+    function appLink() {
+        const p = new URLSearchParams(location.search);
+        return 'https://vk.com/app' + (p.get('vk_app_id') || '');
+    }
+
+    function wireGameOverButtons() {
+        const lb = document.getElementById('lb-button');
+        const share = document.getElementById('share-button');
+        const row = document.getElementById('go-actions');
+        if (!lb || !share || !row || !inVk) return;
+        row.style.display = 'flex';
+        lb.style.display = 'block';
+        share.style.display = 'block';
+        lb.textContent = '🏆 РЕЙТИНГ';
+        share.textContent = '↗ ПОДЕЛИТЬСЯ';
+        lb.addEventListener('click', function () {
+            if (lb.disabled) return;
+            lb.disabled = true;
+            // user_result is display-only (the box never saves the value) —
+            // the recorded best arrives via the server-side score push
+            send('VKWebAppShowLeaderBoardBox', {
+                user_result: Math.max(0, gameState.highScores[0] || 0),
+                global: 1
+            }).catch(function () {}).finally(function () { lb.disabled = false; });
+        });
+        share.addEventListener('click', function () {
+            if (share.disabled) return;
+            share.disabled = true;
+            const best = Math.max(0, gameState.highScores[0] || 0);
+            send('VKWebAppShare', {
+                text: 'Мой лучший бой в Neon Nexus: ' + best + ' очков. Побей мой рекорд!',
+                link: appLink()
+            }).catch(function () {}).finally(function () { share.disabled = false; });
+        });
+    }
+
     // called from main.js initializeGame — game state is loaded by then
     function init() {
         wireNoAdsButton();
+        wireGameOverButtons();
         mapOkUser();
         syncFromCloud();
     }
@@ -335,6 +393,7 @@ var VKSync = (function () {
         pushNow: pushNow,
         maybeInterstitial: maybeInterstitial,
         setNoAds: setNoAds,
+        submitScore: submitScore,
         isNoAds: function () { return noads; },
         inVk: function () { return inVk; }
     };

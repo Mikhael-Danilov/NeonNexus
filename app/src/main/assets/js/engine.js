@@ -76,7 +76,7 @@ const WEAPONS = {
 };
 
 const gameState = {
-    score: 0, highScores: JSON.parse(localStorage.getItem('neonNexusHighScores')) || [], 
+    score: 0, highScores: JSON.parse(localStorage.getItem('neonNexusHighScores')) || [],
     combo: 1, comboTimer: 0, isGameOver: false, isMothershipDead: false, isPaused: false,
     difficultyMultiplier: 1, enemiesKilled: 0, totalKills: 0,
     unlockedWeapons: new Set(['pulse']), mode: 'auto', autoAction: 'move', currentWeapon: 'pulse', fireCooldown: 0,

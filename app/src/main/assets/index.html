@@ -334,6 +334,17 @@
         }
         #play-again-button:hover { background: #00ffff; color: #000; transform: scale(1.05); }
 
+        #go-actions { display: none; gap: 6px; margin-top: 8px; width: 100%; }
+        #lb-button, #share-button {
+            flex: 1; padding: 6px 4px; font-size: 0.7rem; letter-spacing: 0.5px;
+            font-family: 'Share Tech Mono', 'VT323', 'Play', 'Courier New', monospace; font-weight: bold;
+            color: #ffff00; background: transparent; border: 1.5px solid #ffff00;
+            clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+            cursor: pointer; touch-action: manipulation; transition: all 0.2s; display: none;
+        }
+        #lb-button:hover, #share-button:hover { background: rgba(255, 255, 0, 0.15); box-shadow: 0 0 10px rgba(255, 255, 0, 0.5); }
+        #lb-button[disabled], #share-button[disabled] { opacity: 0.5; }
+
         #highscore-table { font-size: 0.85rem; color: #ffff00; text-align: left; display: inline-block; width: 100%; max-width: 200px; }
         #highscore-table h3 { text-decoration: underline; margin-bottom: 4px; text-align: center; color: #fff; font-size: 0.9rem; }
         .hs-row { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
@@ -403,6 +414,10 @@
         <div id="game-over">
             <div id="game-over-text">CORE DESTROYED</div>
             <div id="highscore-table"><h3>TOP RUNS</h3><div id="hs-list"></div></div>
+            <div id="go-actions">
+                <button id="lb-button" style="display:none"></button>
+                <button id="share-button" style="display:none"></button>
+            </div>
             <button id="play-again-button">PLAY AGAIN</button>
         </div>
     </div>
@@ -436,15 +451,15 @@
     <script src="js/vk-bridge.min.js"></script>
 
 
-    <script src="js/engine.js?v=17"></script>
-    <script src="js/graphics.js?v=17"></script>
-    <script src="js/audio.js?v=17"></script>
-    <script src="js/input.js?v=17"></script>
-    <script src="js/entities.js?v=17"></script>
-    <script src="js/systems.js?v=17"></script>
-    <script src="js/vk.js?v=17"></script>
-    <script src="js/ui.js?v=17"></script>
-    <script src="js/main.js?v=17"></script>
+    <script src="js/engine.js?v=18"></script>
+    <script src="js/graphics.js?v=18"></script>
+    <script src="js/audio.js?v=18"></script>
+    <script src="js/input.js?v=18"></script>
+    <script src="js/entities.js?v=18"></script>
+    <script src="js/systems.js?v=18"></script>
+    <script src="js/vk.js?v=18"></script>
+    <script src="js/ui.js?v=18"></script>
+    <script src="js/main.js?v=18"></script>
 
 </body>
 </html>

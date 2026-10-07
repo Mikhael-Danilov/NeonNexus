@@ -96,6 +96,19 @@ def noads_ok_price():
 
 VK_API_VERSION = "5.199"
 
+# ---------------- VK global leaderboard (points table) ----------------
+# The board ranks the BEST SINGLE GAME (Neon Nexus semantics — same as the
+# local TOP RUNS table), but VK's secure.addAppEvent points counter is
+# CUMULATIVE: it only adds. So the server keeps each player's best and
+# submits only the delta above it — the table value then equals max game
+# score. The server-side best is authoritative (survives reinstalls, extra
+# devices and lost submissions: a game better than the stored best re-covers
+# the whole gap on its own). Rendering is client-side only:
+# VKWebAppShowLeaderBoardBox(user_result, global:1) never saves anything.
+VK_API_URL = "https://api.vk.com/method/"
+ACTIVITY_POINTS = 2
+MAX_POINTS = 10_000_000
+
 
 def _load_env_file(path: Path):
     try:
@@ -135,6 +148,7 @@ def load_ent():
     d.setdefault("users", {})
     d.setdefault("orders", {})
     d.setdefault("ok_map", {})
+    d.setdefault("bests", {})
     return d
 
 
@@ -484,3 +498,64 @@ async def ok_order_post(request: Request):
     if params.get("notification_type"):
         return _handle_vk_order(params, raw_body=body)
     return _handle_ok_order(params)
+
+
+# ---------------- leaderboard score push ----------------
+
+class VkScoreBody(BaseModel):
+    score: int          # the finished game's score (NOT a lifetime total)
+    prev_best: int = 0  # accepted for protocol compat; the server's own best wins
+    lp: str             # raw launch params query string from the VK/OK iframe URL
+
+
+@app.post("/api/vk/score")
+def vk_score(body: VkScoreBody):
+    secret = _vk_secret()
+    service_token = _service_token()
+    if not secret or not service_token:
+        raise HTTPException(status_code=503, detail="VK leaderboard not configured")
+    user = _lp_user(body.lp, secret)
+    if user is None:
+        raise HTTPException(status_code=403, detail="bad launch params signature")
+    params = dict(urllib.parse.parse_qsl(body.lp or "", keep_blank_values=True))
+    allowed = {os.environ.get(n, "").strip()
+               for n in ("VK_APP_ID", "OK_APP_ID")} - {"", "0"}
+    if allowed and params.get("vk_app_id") not in allowed:
+        raise HTTPException(status_code=403, detail="launch params from another app")
+
+    # the board ranks the best single game; the cumulative counter gets only
+    # the delta above the player's stored best (server-side authoritative —
+    # re-submissions, other devices and lost posts cannot over-count)
+    game_score = max(0, min(int(body.score), MAX_POINTS))
+    if game_score <= 0:
+        return {"ok": True, "submitted": 0, "best": int(load_ent()["bests"].get(str(user), 0))}
+    with _ent_lock:
+        d = load_ent()
+        prev_best = int(d["bests"].get(str(user), 0))
+        new_best = max(prev_best, game_score)
+        delta = new_best - prev_best
+        if delta > 0:
+            payload = urllib.parse.urlencode({
+                "user_id": user,
+                "activity_id": ACTIVITY_POINTS,
+                "value": delta,
+                "access_token": service_token,
+                "v": VK_API_VERSION,
+            }).encode()
+            req = urllib.request.Request(VK_API_URL + "secure.addAppEvent",
+                                         data=payload, method="POST")
+            try:
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    out = json.loads(resp.read())
+            except OSError as err:
+                raise HTTPException(status_code=502, detail=f"VK API unreachable: {err}")
+            if out.get("error"):
+                # e.g. 15: points table not configured in the app settings, 29: rate limit
+                raise HTTPException(status_code=502,
+                                    detail=f"VK API error {out['error'].get('error_code')}: {out['error'].get('error_msg')}")
+            # only commit the new best after VK accepted the delta, so a
+            # failed push can be re-covered by the next game
+            d["bests"][str(user)] = new_best
+            save_ent(d)
+    print(f"VK score: game {game_score}, best {prev_best} -> {new_best} (delta {delta}) for user {user}", flush=True)
+    return {"ok": True, "submitted": delta, "best": new_best}

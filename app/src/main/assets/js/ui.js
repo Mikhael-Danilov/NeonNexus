@@ -142,7 +142,7 @@ function gameOver(isMothershipDead) {
     SFX.playerHit();
     gameState.isGameOver = true;
     addHighScore(gameState.score);
-    if (window.VKSync) { VKSync.pushNow(); VKSync.maybeInterstitial(); }
+    if (window.VKSync) { VKSync.submitScore(gameState.score); VKSync.pushNow(); VKSync.maybeInterstitial(); }
     
     const gameOverText = document.getElementById('game-over-text');
     if (isMothershipDead) {
