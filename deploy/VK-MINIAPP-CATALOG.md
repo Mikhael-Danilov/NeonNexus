@@ -43,8 +43,24 @@ Upload from `store-assets/vk-play/vk-catalog/` (regenerate art:
 | Малая иконка | `icon-150.png` | 150×150 png |
 | Favicon | `favicon-32.png` | 32×32 png |
 | Большой сниппет | `snippet-1120x630.png` | 1120×630 png |
-| Скриншоты (desktop) | `desktop-1-start.png`, `desktop-2-combat.png`, `desktop-3-game-over.png` | 1200×600 ×3 |
-| Скриншоты (mobile) | `mobile-1-start.png`, `mobile-2-combat.png`, `mobile-3-game-over.png` | 1080×1920 ×3 (mobile section, if asked) |
+| Скриншоты | `desktop-1-action.png`, `desktop-2-combat.png`, `desktop-3-game-over.png` | 1200×600, «Изображения» tab → «Скриншоты» |
+
+Screenshot section facts learned by doing (app 54802003, 2026-10-07):
+
+* The form has a single **Ориентация** radio (Альбомная / Книжная) — one set
+  of screenshots total, not separate desktop/mobile sets. Landscape is the
+  right pick: the section header says they are shown on the game launch
+  screen **in the desktop version of the site**. Switching the radio
+  warns that already-uploaded screenshots will be deleted.
+* 3 slots render initially and uploads persist there; slots added via
+  «Загрузить ещё» accept a file and even show the «Скриншот загружен»
+  toast, but **do not survive a page reload** — VK drops them server-side.
+  Upload into the initial 3 slots (they render empty on a fresh
+  «Оформление» page; after removal of a filled one the empty-slot input
+  only exists after clicking «Загрузить ещё»).
+* The `mobile-*.png` files (1080×1920) are generated for completeness /
+  other stores — the mini-app catalog form has no place for them.
+* Uploads auto-save; there is no «Сохранить» button on «Оформление».
 
 ## 4. «Размещение в каталоге» — questionnaire
 
