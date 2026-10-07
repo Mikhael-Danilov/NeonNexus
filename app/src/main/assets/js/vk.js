@@ -40,7 +40,7 @@ var NNRU = {
     // start screen
     'START GAME': 'НАЧАТЬ ИГРУ',
     '✕ DISABLE ADS': '✕ ОТКЛЮЧИТЬ РЕКЛАМУ',
-    'NEON NEXUS<br>DEFEND THE MOTHERSHIP': 'NEON NEXUS<br>ЗАЩИТИ МАТКУ',
+    'NEON NEXUS<br>DEFEND THE MOTHERSHIP': 'NEON NEXUS<br>ЗАЩИТИ ФЛАГМАН',
     // in-game HUD
     '⌂ MENU': '⌂ МЕНЮ',
     'EXIT?': 'ВЫЙТИ?',
@@ -51,7 +51,7 @@ var NNRU = {
     'OVERDRIVE': 'ОВЕРДРАЙВ',
     // game over
     'CORE DESTROYED': 'ЯДРО УНИЧТОЖЕНО',
-    'MOTHERSHIP DESTROYED': 'МАТКА УНИЧТОЖЕНА',
+    'MOTHERSHIP DESTROYED': 'ФЛАГМАН УНИЧТОЖЕН',
     'TOP RUNS': 'РЕКОРДЫ',
     'PLAY AGAIN': 'ИГРАТЬ СНОВА',
     'No scores yet': 'Пока нет рекордов',
@@ -71,7 +71,7 @@ function T(s) { return (NN_IN_VK && NNRU[s]) || s; }
 (function applyRuUi() {
     if (!NN_IN_VK) return;
     document.documentElement.lang = 'ru';
-    document.title = 'Neon Nexus — Защитник Матки';
+    document.title = 'Neon Nexus — Защитник Флагмана';
 
     const markup = {
         // values that include tags must go through innerHTML
@@ -98,9 +98,9 @@ function T(s) { return (NN_IN_VK && NNRU[s]) || s; }
         if (el) el.textContent = plain[id];
     });
 
-    // vertical MOTHERSHIP label -> МАТКА
+    // vertical MOTHERSHIP label -> ФЛАГМАН
     const msLabel = document.getElementById('mothership-label');
-    if (msLabel) msLabel.innerHTML = '<span>М</span><span>А</span><span>Т</span><span>К</span><span>А</span>';
+    if (msLabel) msLabel.innerHTML = '<span>Ф</span><span>Л</span><span>А</span><span>Г</span><span>М</span><span>А</span><span>Н</span>';
     const hsTitle = document.querySelector('#highscore-table h3');
     if (hsTitle) hsTitle.textContent = T('TOP RUNS');
 

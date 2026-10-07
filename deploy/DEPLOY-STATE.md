@@ -7,7 +7,7 @@ Host: `nyrds@45.132.176.250` (ssh key `~/.ssh/id_rsa_laptop`), serves
 
 - **Static build** (RU-localized VK flavor, commit `ed2af5c`):
   `rsync -av --delete -e "ssh -i ~/.ssh/id_rsa_laptop" app/src/main/assets/ nyrds@45.132.176.250:/var/www/html/neon-nexus/`
-  Verified live: `?vk_app_id` → RU («НАЧАТЬ ИГРУ», МАТКА, noads button);
+  Verified live: `?vk_app_id` → RU («НАЧАТЬ ИГРУ», ФЛАГМАН, noads button);
   without the param → EN unchanged.
 - **Entitlement API**: `/var/www/neon-nexus-api/backend` (app.py + .venv,
   python 3.12), systemd `neonnexus-api.service` (User=nyrds, port 8017,
