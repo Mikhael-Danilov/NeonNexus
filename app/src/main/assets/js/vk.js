@@ -8,12 +8,131 @@
 //   - interstitial ad after every finished game (VKWebAppShowNativeAds)
 //   - "disable ads" votes purchase (VKWebAppShowOrderBox, good `noads`),
 //     granted by the backend order callback, reconciled via /api/vk/entitled
+//   - RU localization: T() for strings set from JS, applyRuUi() swaps the
+//     static index.html text once at load (see NNRU below)
 // Server side: backend/app.py + deploy/VK-MINIAPP-CATALOG.md.
 
 // var, not const: callers guard with `window.VKSync`, and only a top-level
 // var becomes a window property
+var NN_IN_VK = /vk_app_id/.test(location.search);
+
+// ---------------- RU localization (VK flavor only) ----------------
+// The VK audience is Russian; every user-facing string goes through this
+// table (dynamic strings via T(), static index.html text via applyRuUi).
+// Outside VK T() is the identity, so the EN web / VK Play builds are
+// untouched.
+var NNRU = {
+    // loading screen / init errors
+    'INITIALIZING NEON NEXUS...': 'ИНИЦИАЛИЗАЦИЯ NEON NEXUS...',
+    'Checking libraries...': 'Проверка библиотек...',
+    'Initializing Three.js...': 'Инициализация Three.js...',
+    'Creating Assets...': 'Создание ресурсов...',
+    'Setting up Input...': 'Настройка управления...',
+    'Loading Game State...': 'Загрузка прогресса...',
+    'Ready to launch.': 'Готов к запуску.',
+    'Three.js failed to load.': 'Не загрузился Three.js.',
+    'Tone.js failed to load.': 'Не загрузился Tone.js.',
+    'Tween.js failed to load.': 'Не загрузился Tween.js.',
+    'Three.js PostProcessing failed to load.': 'Не загрузилась постобработка Three.js.',
+    'FATAL ERROR: ': 'КРИТИЧЕСКАЯ ОШИБКА: ',
+    'Please check your internet connection or disable ad-blockers and refresh.':
+        'Проверьте подключение к интернету или отключите блокировщик рекламы и обновите страницу.',
+    // start screen
+    'START GAME': 'НАЧАТЬ ИГРУ',
+    '✕ DISABLE ADS': '✕ ОТКЛЮЧИТЬ РЕКЛАМУ',
+    'NEON NEXUS<br>DEFEND THE MOTHERSHIP': 'NEON NEXUS<br>ЗАЩИТИ МАТКУ',
+    // in-game HUD
+    '⌂ MENU': '⌂ МЕНЮ',
+    'EXIT?': 'ВЫЙТИ?',
+    'MODE<br>AUTO': 'РЕЖИМ<br>АВТО',
+    'MODE<br>MOVE': 'РЕЖИМ<br>ДВИЖЕНИЕ',
+    'MODE<br>SHOOT': 'РЕЖИМ<br>ОГОНЬ',
+    'SHIELD': 'ЩИТ',
+    'OVERDRIVE': 'ОВЕРДРАЙВ',
+    // game over
+    'CORE DESTROYED': 'ЯДРО УНИЧТОЖЕНО',
+    'MOTHERSHIP DESTROYED': 'МАТКА УНИЧТОЖЕНА',
+    'TOP RUNS': 'РЕКОРДЫ',
+    'PLAY AGAIN': 'ИГРАТЬ СНОВА',
+    'No scores yet': 'Пока нет рекордов',
+    // unlock toast
+    'WEAPON UNLOCKED': 'ОРУЖИЕ ОТКРЫТО',
+    'PULSE CANNON': 'ПУЛЬС-ПУШКА',
+    'SPREAD SHOT': 'ВЕЕРНЫЙ ЗАЛП',
+    'LASER BEAM': 'ЛАЗЕРНЫЙ ЛУЧ',
+    'HOMING MISSILES': 'САМОНАВОДЯЩИЕСЯ РАКЕТЫ',
+};
+
+function T(s) { return (NN_IN_VK && NNRU[s]) || s; }
+
+// static index.html text: one swap at script load — this file is loaded at
+// the end of <body> before ui/main, so the elements already exist and any
+// later JS-set text goes through T()
+(function applyRuUi() {
+    if (!NN_IN_VK) return;
+    document.documentElement.lang = 'ru';
+    document.title = 'Neon Nexus — Защитник Матки';
+
+    const markup = {
+        // values that include tags must go through innerHTML
+        'start-title': T('NEON NEXUS<br>DEFEND THE MOTHERSHIP'),
+        'noads-button': T('✕ DISABLE ADS'),
+        'mode-toggle-button': T('MODE<br>AUTO'),
+        'multiplier-status': 'ОЧКИ x2<div class="powerup-timer"></div>',
+        'overdrive-status': T('OVERDRIVE') + '<div class="powerup-timer"></div>',
+    };
+    const plain = {
+        'loading-text': T('INITIALIZING NEON NEXUS...'),
+        'start-button': T('START GAME'),
+        'menu-button': T('⌂ MENU'),
+        'shield-status': T('SHIELD'),
+        'game-over-text': T('CORE DESTROYED'),
+        'play-again-button': T('PLAY AGAIN'),
+    };
+    Object.keys(markup).forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = markup[id];
+    });
+    Object.keys(plain).forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = plain[id];
+    });
+
+    // vertical MOTHERSHIP label -> МАТКА
+    const msLabel = document.getElementById('mothership-label');
+    if (msLabel) msLabel.innerHTML = '<span>М</span><span>А</span><span>Т</span><span>К</span><span>А</span>';
+    const hsTitle = document.querySelector('#highscore-table h3');
+    if (hsTitle) hsTitle.textContent = T('TOP RUNS');
+
+    // control hints, applied row by row ([tag, description])
+    const hints = [
+        ['ТАП / ВЕДИ', 'АВТО-ДВИЖЕНИЕ ИЛИ ОГОНЬ'],
+        ['КНОПКА РЕЖИМА', 'АВТО / ДВИЖЕНИЕ / ОГОНЬ'],
+        ['ЩИПОК', 'МАСШТАБ КАМЕРЫ'],
+        ['СЛОТ 5', 'ВАРП-БЛИНК'],
+    ];
+    document.querySelectorAll('#start-instructions .inst-row').forEach(function (row, i) {
+        if (!hints[i] || row.children.length < 2) return;
+        row.children[0].textContent = hints[i][0];
+        row.children[1].textContent = hints[i][1];
+    });
+
+    // enemy / powerup legend (colors kept from the EN original)
+    const legend = document.getElementById('enemy-legend');
+    if (legend) legend.innerHTML =
+        '<div style="color:#ff0044">► Преследователь</div><div style="color:#ff8800">► Зигзаг</div><div style="color:#aa00ff">► Стрелок</div>' +
+        '<div style="color:#00ff44">► Танк (6 хп)</div><div style="color:#ffee00">► Сплиттер</div><div style="color:#ff00ff">► Роевик</div>' +
+        '<div style="color:#00aaff">► Орбитер</div><div style="color:#ff6600">► Бомбер (взрывается!)</div>' +
+        '<hr style="margin: 8px 0; border-color: #333;">' +
+        '<div style="color:#ff0044">● Красный глаз = охотится на тебя</div>' +
+        '<div style="color:#ff8800">● Оранжевый глаз = атакует базу</div>' +
+        '<hr style="margin: 8px 0; border-color: #333;">' +
+        '<div style="color:#00aaff">⬢ Щит</div><div style="color:#ffaa00">◆ Очки x2</div><div style="color:#00ffff">▲ Овердрайв</div>' +
+        '<div style="color:#ff0044">■ Нюк</div><div style="color:#88ff00">+ Турель</div>';
+})();
+
 var VKSync = (function () {
-    const inVk = /vk_app_id/.test(location.search);
+    const inVk = NN_IN_VK;
     const bridge = (inVk && window.vkBridge) ? window.vkBridge : null;
     const API = 'api/';                       // same-origin entitlement service
     // VK storage keys (≤25 chars); values ≤2048 chars

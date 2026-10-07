@@ -38,22 +38,22 @@ function animate() {
 // ============================================
 async function initializeGame() {
     try {
-        updateProgress(10, "Checking libraries...");
-        if (typeof THREE === 'undefined') throw new Error("Three.js failed to load.");
-        if (typeof Tone === 'undefined') throw new Error("Tone.js failed to load.");
-        if (typeof TWEEN === 'undefined') throw new Error("Tween.js failed to load.");
-        if (typeof THREE.EffectComposer === 'undefined') throw new Error("Three.js PostProcessing failed to load.");
+        updateProgress(10, T("Checking libraries..."));
+        if (typeof THREE === 'undefined') throw new Error(T("Three.js failed to load."));
+        if (typeof Tone === 'undefined') throw new Error(T("Tone.js failed to load."));
+        if (typeof TWEEN === 'undefined') throw new Error(T("Tween.js failed to load."));
+        if (typeof THREE.EffectComposer === 'undefined') throw new Error(T("Three.js PostProcessing failed to load."));
 
-        updateProgress(30, "Initializing Three.js...");
+        updateProgress(30, T("Initializing Three.js..."));
         initThree();
 
-        updateProgress(60, "Creating Assets...");
+        updateProgress(60, T("Creating Assets..."));
         initAssets();
 
-        updateProgress(80, "Setting up Input...");
+        updateProgress(80, T("Setting up Input..."));
         initInput();
 
-        updateProgress(90, "Loading Game State...");
+        updateProgress(90, T("Loading Game State..."));
         const savedTotalKills = localStorage.getItem('neonNexusTotalKills');
         if (savedTotalKills) {
             gameState.totalKills = parseInt(savedTotalKills);
@@ -68,7 +68,7 @@ async function initializeGame() {
         if (window.VKSync) VKSync.init();
         updateSoundButtons();
 
-        updateProgress(100, "Ready to launch.");
+        updateProgress(100, T("Ready to launch."));
         setTimeout(() => {
             loadingScreen.style.opacity = 0;
             setTimeout(() => loadingScreen.style.display = 'none', 500);
@@ -78,8 +78,8 @@ async function initializeGame() {
         animate();
     } catch (error) {
         console.error(error);
-        debug("FATAL ERROR: " + error.message);
-        debug("Please check your internet connection or disable ad-blockers and refresh.");
+        debug(T("FATAL ERROR: ") + error.message);
+        debug(T("Please check your internet connection or disable ad-blockers and refresh."));
     }
 }
 
@@ -113,11 +113,11 @@ if (menuButton) {
     menuButton.addEventListener('click', () => {
         if (menuButton.classList.contains('armed')) { location.reload(); return; }
         menuButton.classList.add('armed');
-        menuButton.textContent = 'EXIT?';
+        menuButton.textContent = T('EXIT?');
         clearTimeout(menuArmTimer);
         menuArmTimer = setTimeout(() => {
             menuButton.classList.remove('armed');
-            menuButton.textContent = '⌂ MENU';
+            menuButton.textContent = T('⌂ MENU');
         }, 3000);
     });
 }

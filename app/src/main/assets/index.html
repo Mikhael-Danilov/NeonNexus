@@ -35,9 +35,30 @@
             src: url(fonts/vt323-latin-ext.woff2) format('woff2');
             unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
         }
+        /* Play — Cyrillic counterpart for the RU strings of the VK mini-app
+             flavor (the faces above have no Cyrillic glyphs, so RU text would
+             fall back to the system font and lose the terminal look). Cyrillic
+             subsets only: on the EN web / VK Play builds no character matches
+             these ranges and the files are never downloaded. */
+        @font-face {
+            font-family: 'Play';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url(fonts/play-cyrillic-400.woff2) format('woff2');
+            unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+        }
+        @font-face {
+            font-family: 'Play';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: url(fonts/play-cyrillic-700.woff2) format('woff2');
+            unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            background: #000; color: #fff; font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace; 
+            background: #000; color: #fff; font-family: 'Share Tech Mono', 'VT323', 'Play', 'Courier New', monospace; 
             overflow: hidden; height: 100vh; width: 100vw; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             touch-action: none; 
@@ -66,7 +87,7 @@
         #start-screen.show { opacity: 1; visibility: visible; transition: opacity 0.5s ease, visibility 0s linear 0s; }
         #start-title { font-size: 1.7rem; color: #00ffff; text-shadow: 0 0 15px #00ffff; margin-bottom: 20px; text-align: center; line-height: 1.2; letter-spacing: 1px; }
         #start-button {
-            padding: 12px 36px; font-size: 1.15rem; font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace; font-weight: bold;
+            padding: 12px 36px; font-size: 1.15rem; font-family: 'Share Tech Mono', 'VT323', 'Play', 'Courier New', monospace; font-weight: bold;
             color: #000; background: #00ffff; border: none;
             clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
             cursor: pointer; box-shadow: 0 0 20px #00ffff; transition: transform 0.2s, box-shadow 0.2s;
@@ -98,7 +119,7 @@
 
         #noads-button {
             margin-top: 14px;
-            padding: 7px 20px; font-size: 0.85rem; font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace;
+            padding: 7px 20px; font-size: 0.85rem; font-family: 'Share Tech Mono', 'VT323', 'Play', 'Courier New', monospace;
             color: #ffaa00; background: transparent; border: 1.5px solid #ffaa00;
             clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
             cursor: pointer; touch-action: manipulation; letter-spacing: 1px;
@@ -199,7 +220,7 @@
             width: 65px; height: 44px;
             background: rgba(10, 15, 25, 0.85); border: 1.5px solid #00ffff; color: #00ffff;
             clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
-            font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace; font-weight: bold; font-size: 0.75rem; line-height: 1.1;
+            font-family: 'Share Tech Mono', 'VT323', 'Play', 'Courier New', monospace; font-weight: bold; font-size: 0.75rem; line-height: 1.1;
             display: flex; align-items: center; justify-content: center; text-align: center;
             cursor: pointer; transition: all 0.2s; touch-action: manipulation;
             margin-top: auto; flex-shrink: 0;
@@ -237,7 +258,7 @@
             clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 8px rgba(0, 255, 255, 0.5); touch-action: manipulation;
-            font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace;
+            font-family: 'Share Tech Mono', 'VT323', 'Play', 'Courier New', monospace;
             transition: all 0.2s;
         }
         #info-button:hover, #sound-button:hover { background: #00ffff; color: #000; box-shadow: 0 0 15px #00ffff; }
@@ -247,7 +268,7 @@
             width: 65px; height: 34px; flex-shrink: 0;
             background: rgba(10, 15, 25, 0.85); border: 1.5px solid #445; color: #8899aa;
             clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
-            font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace; font-weight: bold; font-size: 0.7rem;
+            font-family: 'Share Tech Mono', 'VT323', 'Play', 'Courier New', monospace; font-weight: bold; font-size: 0.7rem;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.2s; touch-action: manipulation; letter-spacing: 1px;
         }
@@ -305,7 +326,7 @@
         
         #play-again-button {
             margin-top: 10px;
-            padding: 8px 24px; font-size: 0.95rem; font-family: 'Share Tech Mono', 'VT323', 'Courier New', monospace; font-weight: bold;
+            padding: 8px 24px; font-size: 0.95rem; font-family: 'Share Tech Mono', 'VT323', 'Play', 'Courier New', monospace; font-weight: bold;
             color: #00ffff; background: transparent; border: 1.5px solid #00ffff;
             clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
             cursor: pointer; box-shadow: 0 0 10px #00ffff; transition: all 0.2s;
@@ -415,15 +436,15 @@
     <script src="js/vk-bridge.min.js"></script>
 
 
-    <script src="js/engine.js?v=14"></script>
-    <script src="js/graphics.js?v=14"></script>
-    <script src="js/audio.js?v=14"></script>
-    <script src="js/input.js?v=14"></script>
-    <script src="js/entities.js?v=14"></script>
-    <script src="js/systems.js?v=14"></script>
-    <script src="js/vk.js?v=14"></script>
-    <script src="js/ui.js?v=14"></script>
-    <script src="js/main.js?v=14"></script>
+    <script src="js/engine.js?v=15"></script>
+    <script src="js/graphics.js?v=15"></script>
+    <script src="js/audio.js?v=15"></script>
+    <script src="js/input.js?v=15"></script>
+    <script src="js/entities.js?v=15"></script>
+    <script src="js/systems.js?v=15"></script>
+    <script src="js/vk.js?v=15"></script>
+    <script src="js/ui.js?v=15"></script>
+    <script src="js/main.js?v=15"></script>
 
 </body>
 </html>

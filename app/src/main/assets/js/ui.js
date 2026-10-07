@@ -10,8 +10,8 @@ function checkWeaponUnlocks() {
 }
 function showUnlockNotification(weapon) {
     const notif = document.getElementById('unlock-notification');
-    const names = { pulse: 'PULSE CANNON', spread: 'SPREAD SHOT', laser: 'LASER BEAM', missile: 'HOMING MISSILES' };
-    notif.innerHTML = `WEAPON UNLOCKED<br>${names[weapon]}`;
+    const names = { pulse: T('PULSE CANNON'), spread: T('SPREAD SHOT'), laser: T('LASER BEAM'), missile: T('HOMING MISSILES') };
+    notif.innerHTML = `${T('WEAPON UNLOCKED')}<br>${names[weapon]}`;
     notif.style.opacity = 1;
     const fade = { o: 1 };
     new TWEEN.Tween(fade).to({ o: 0 }, 500).delay(2000).onUpdate(() => { notif.style.opacity = fade.o; }).start();
@@ -44,15 +44,15 @@ function updateModeVisuals() {
     if (gameState.mode === 'shoot') {
         modeBtn.classList.add('shoot');
         modeBtn.classList.remove('auto');
-        modeBtn.innerHTML = 'MODE<br>SHOOT';
+        modeBtn.innerHTML = T('MODE<br>SHOOT');
     } else if (gameState.mode === 'auto') {
         modeBtn.classList.remove('shoot');
         modeBtn.classList.add('auto');
-        modeBtn.innerHTML = 'MODE<br>AUTO';
+        modeBtn.innerHTML = T('MODE<br>AUTO');
     } else {
         modeBtn.classList.remove('shoot');
         modeBtn.classList.remove('auto');
-        modeBtn.innerHTML = 'MODE<br>MOVE';
+        modeBtn.innerHTML = T('MODE<br>MOVE');
     }
 }
 
@@ -102,7 +102,7 @@ function updateHighScoreUI() {
     const topScore = gameState.highScores.length > 0 ? gameState.highScores[0] : 0;
     const list = document.getElementById('hs-list'); let html = '';
     if (gameState.highScores.length > 0) { gameState.highScores.forEach((s, i) => { html += `<div class="hs-row"><span class="hs-rank">${i+1}.</span> <span class="hs-val">${s}</span></div>`; }); }
-    else { html = '<div style="text-align:center; color:#aaa;">No scores yet</div>'; }
+    else { html = `<div style="text-align:center; color:#aaa;">${T('No scores yet')}</div>`; }
     if(list) list.innerHTML = html;
 }
 function updateScore(points, killX, killY) {
@@ -147,11 +147,11 @@ function gameOver(isMothershipDead) {
     const gameOverText = document.getElementById('game-over-text');
     if (isMothershipDead) {
         gameState.isMothershipDead = true;
-        gameOverText.textContent = 'MOTHERSHIP DESTROYED';
+        gameOverText.textContent = T('MOTHERSHIP DESTROYED');
         createExplosion(0, 0, 0xff8800, 50); 
         mothershipGroup.visible = false;
     } else {
-        gameOverText.textContent = 'CORE DESTROYED';
+        gameOverText.textContent = T('CORE DESTROYED');
         createExplosion(playerEntity.Position.x, playerEntity.Position.y, playerMesh.material.color.getHex(), 30);
         playerMesh.visible = false; playerGlow.visible = false; playerShieldMesh.visible = false; modeRing.visible = false;
     }
