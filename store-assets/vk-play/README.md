@@ -27,6 +27,24 @@ asks for them:
 | `legacy/icon-46x46.png` | Иконка (old form) | 46×46 png ≤20 KB |
 | `legacy/shortcut-icon-256x256.png` | Иконка ярлыка | 256×256 png |
 
+## `vk-catalog/` — the VK mini-app catalog set (dev.vk.com)
+
+The same game is also listed in the vk.com mini-app catalog; questionnaire
+texts and the submission guide live in `deploy/VK-MINIAPP-CATALOG.md` and
+`deploy/listing-vk-miniapp-{ru,en}.md`.
+
+| File | Field («Оформление» / «Размещение в каталоге») | Spec |
+|---|---|---|
+| `icon-576.png` | Универсальная иконка | 576×576 png |
+| `icon-278.png` | Иконка каталога/сниппета (change at most once per 2 weeks) | 278×278 png |
+| `icon-150.png` | Малая иконка | 150×150 png |
+| `favicon-32.png` | Favicon | 32×32 png |
+| `snippet-1120x630.png` | Большой сниппет | 1120×630 png |
+| `desktop-{1-start,2-combat,3-game-over}.png` | Скриншоты desktop | 1200×600, cropped from `store-assets/screenshots/` |
+| `mobile-{1-start,2-combat,3-game-over}.png` | Скриншоты mobile (section shown if asked) | 1080×1920, center strip of the same captures, upscaled + sharpened |
+
+Regenerate the six screenshots: `python3 tools/gen_vk_catalog_screenshots.py`.
+
 ## Rules the artwork already follows (moderation checklist)
 
 * Covers carry only the project name "NEON NEXUS" — that is the only text

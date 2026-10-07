@@ -8,6 +8,10 @@ and iframes our URL. Sources: official dev docs
 (`documentation.vkplay.ru`, f2p section: «Создание проекта», «Подготовка
 страницы игры» [f2pb], «Оформление страницы», «Модерация и публикация»).
 
+The same build is also listed as a **VK mini app** in the vk.com catalog —
+that flow (catalog art, questionnaire, moderation rules) is documented in
+[`VK-MINIAPP-CATALOG.md`](VK-MINIAPP-CATALOG.md).
+
 Key platform facts (from the docs, 2026-10):
 
 * Project type (client vs browser) **cannot be changed after creation**.
