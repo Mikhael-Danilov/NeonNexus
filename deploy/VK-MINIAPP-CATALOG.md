@@ -96,6 +96,12 @@ one-time «disable ads» for votes (`VKWebAppShowOrderBox`, good **`noads`**,
    `get_item`, `order_status_change`, tester `_test` variants, orders.get
    fallback for the html-escape sig quirk — all per the quiz-proven
    protocol; see the header of `backend/app.py`).
+   For the OK copy of the app (apiok.ru): «URL для платёжных уведомлений» =
+   `https://<host>/neon-nexus/api/ok/order` — OK's bot speaks the same VK
+   protocol there with the OK app id and ruble-parity price, plus
+   `callbacks.payment` transactions (uid mapped to vk_user_id via the
+   client's boot-time /api/ok/map call). OK also needs `VALUABLE_ACCESS`
+   from api-support@ok.ru before its payments work at all.
 
 3. nginx: the `^~ /neon-nexus/api/` location in
    `deploy/nginx-vkplay.conf.example` proxies to 127.0.0.1:8017.

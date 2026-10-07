@@ -306,9 +306,26 @@ var VKSync = (function () {
         updateNoAdsUi();
     }
 
+    // inside OK the launcher adds vk_ok_user_id (the OK-native uid) to the
+    // launch params; OK's payment callbacks carry that uid, so register the
+    // ok_uid -> vk_user_id mapping the backend needs to grant the right
+    // player (launch params are HMAC-verified server side)
+    function mapOkUser() {
+        try {
+            const p = new URLSearchParams(location.search);
+            if (p.get('vk_client') !== 'ok' || !p.get('vk_ok_user_id')) return;
+            fetch(API + 'ok/map', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lp: location.search.slice(1) })
+            }).catch(function () {});
+        } catch (e) {}
+    }
+
     // called from main.js initializeGame — game state is loaded by then
     function init() {
         wireNoAdsButton();
+        mapOkUser();
         syncFromCloud();
     }
 

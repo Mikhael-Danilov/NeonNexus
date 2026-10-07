@@ -23,6 +23,7 @@ Group=nyrds
 WorkingDirectory=/var/www/neon-nexus-api/backend
 Environment=NN_DATA_DIR=/var/www/neon-nexus-api/backend
 Environment=VK_APP_ID=54802003
+Environment=OK_APP_ID=51200515914
 EnvironmentFile=/var/www/neon-nexus-api/backend/.env
 ExecStart=/var/www/neon-nexus-api/backend/.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8017
 Restart=on-failure

@@ -29,6 +29,28 @@ Host: `nyrds@45.132.176.250` (ssh key `~/.ssh/id_rsa_laptop`), serves
   bad sig → error 10; service token validated via `orders.get` (empty list).
   Test grant removed afterwards — `entitlements.json` is empty again.
 
+## OK payments pipeline (added 2026-10-07, verified)
+
+Ported from the quiz (commit `2e56d77`-proven protocol): OK launcher
+translates `VKWebAppShowOrderBox`, OK's bot speaks the VK protocol against
+the VK notification URL with `app_id=51200515914` (accepted alongside
+54802003) and is answered the ruble-parity price (`noads` = 15 голосов →
+105 ОКов, `OK_RUB_PER_VOTE=7`); the `callbacks.payment` transaction lands on
+`/api/ok/order` (md5 sig skipping empty params, `OK_APPLICATION_KEY` asserted
+when set, amount asserted) and answers literal `true`; the OK-native uid is
+resolved to vk_user_id via the boot-time `/api/ok/map` registration the
+client does inside OK (launch params add `vk_ok_user_id`, HMAC-verified).
+Verified with signed probes: OK get_item → 105, map → true, transaction →
+`true` + grant, entitled (OK launch params) → `noads:true`; journal shows
+uid→user resolution. Test artifacts cleaned.
+
+Remaining OK-side (needs apiok.ru access):
+1. «URL для платёжных уведомлений» of the OK app = `https://ru.nyrds.net/neon-nexus/api/ok/order`.
+2. `VALUABLE_ACCESS` from api-support@ok.ru — per-app payment permission;
+   without it order creation fails with the generic payment error.
+3. Optional: fill `OK_APPLICATION_KEY` in backend/.env (from apiok.ru) —
+   asserted when set.
+
 ## Remaining
 
 1. Console URLs (dev.vk.com):

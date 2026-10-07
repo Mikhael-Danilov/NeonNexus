@@ -1,8 +1,9 @@
-# Neon Nexus entitlement service (VK votes IAP: the `noads` good).
+# Neon Nexus entitlement service (VK votes IAP + OK payments: the `noads` good).
 #
-# The game is a fully static site; this service exists ONLY for the VK
-# mini-app flavor of it (vk.com catalog). VK's payments bot calls the app's
-# «URL для платёжных уведомлений ВКонтакте» with two callbacks:
+# The game is a fully static site; this service exists ONLY for the mini-app
+# flavors of it (vk.com catalog + the same app published to OK). VK's payments
+# bot calls the app's «URL для платёжных уведомлений ВКонтакте» with two
+# callbacks:
 #   get_item          — the goods catalog: title + price (votes) of `noads`
 #   order_status_change (status=chargeable) — the actual purchase; the order
 #                       is granted and confirmed by answering
@@ -10,6 +11,23 @@
 # Both are signature-verified with the app's «защищённый ключ» (same key the
 # launch params are verified with). The client polls POST /api/vk/entitled
 # with its raw launch params to confirm the grant landed.
+#
+# OK (Odnoklassniki): the same transferred app runs on OK with the SAME secret
+# but a distinct app id (OK_APP_ID) and its own notification URL. The OK
+# launcher translates the client's VKWebAppShowOrderBox into its own payment
+# dialog; OK's payment bot (OdklApiBot) then
+#   - speaks the SAME VK-protocol get_item/order_status_change against the VK
+#     notification URL presenting app_id=OK_APP_ID — answered identically
+#     except the price: OK users pay in ОКах (~1₽), VK users in votes (~7₽),
+#     so the OK bot gets the ruble-parity scaled price;
+#   - sends one callbacks.payment transaction (uid/transaction_id/amount/
+#     product_code/sig; md5 sig skipping empty params) to the OK notification
+#     URL (/api/ok/order), which must answer a literal `true` — errors carry
+#     the «Invocation-error» HTTP header, 3 retries × 5s then refund. The
+#     transaction uid is OK-native → the client registers the
+#     ok_uid → vk_user_id mapping at boot (POST /api/ok/map, launch-params
+#     verified; inside OK the launcher adds vk_ok_user_id and still signs the
+#     VK-style params with the shared secret).
 #
 # Protocol quirks baked in below (learned on the quiz, see global AGENTS.md):
 #   - tester notifications carry a `_test` suffix on every notification_type
@@ -26,8 +44,14 @@
 #
 # Env vars (see deploy/neonnexus-api.service):
 #   VK_APP_ID                          the VK mini-app id (0/absent = accept any)
-#   VK_APP_SECRET / VK_PROTECTED_KEY   «защищённый ключ» from app settings
+#   OK_APP_ID                          the OK app id (transferred app; accept both)
+#   VK_APP_SECRET / VK_PROTECTED_KEY   «защищённый ключ» (shared VK/OK for
+#                                      transferred apps)
 #   VK_SERVICE_TOKEN / VK_SERVICE_KEY  «сервисный ключ» (orders.get fallback)
+#   OK_APPLICATION_KEY                 OK application key — asserted on
+#                                      callbacks.payment when set (defense in
+#                                      depth; the md5 sig is the primary check)
+#   OK_RUB_PER_VOTE                    ruble parity for OK prices (default 7)
 #   NN_DATA_DIR                        where entitlements.json lives (default: .)
 #   NN_NOADS_PRICE                     price in votes (default 15)
 #   NN_PHOTO_URL                       photo_url served in get_item
@@ -59,6 +83,16 @@ PRODUCT = "noads"  # the only good; item string is free-form ≤64 chars, no &<>
 NOADS_TITLE = "Отключить рекламу"  # no escapable chars — see the html-escape quirk above
 NOADS_PRICE = int(os.environ.get("NN_NOADS_PRICE", "15") or 15)
 NOADS_PHOTO = os.environ.get("NN_PHOTO_URL", "https://ru.nyrds.net/neon-nexus/img/noads-256.png")
+
+# OK users pay in ОКах (~1₽ each), not VK votes (~7₽): the OK bot resolves
+# the same good with a get_item probe presenting app_id=OK_APP_ID and is
+# answered the ruble-parity scaled price, which its callbacks.payment
+# transaction must then carry.
+OK_RUB_PER_VOTE = float(os.environ.get("OK_RUB_PER_VOTE", "7") or 7)
+
+
+def noads_ok_price():
+    return max(1, round(NOADS_PRICE * OK_RUB_PER_VOTE))
 
 VK_API_VERSION = "5.199"
 
@@ -100,6 +134,7 @@ def load_ent():
         d = {}
     d.setdefault("users", {})
     d.setdefault("orders", {})
+    d.setdefault("ok_map", {})
     return d
 
 
@@ -156,6 +191,17 @@ def verify_launch_params(params: dict, secret: str) -> bool:
     return hmac.compare_digest(sign, params["sign"])
 
 
+def _lp_user(params_qs: str, secret: str):
+    """Verify raw launch params (query string) and return the vk_user_id."""
+    params = dict(urllib.parse.parse_qsl(params_qs or "", keep_blank_values=True))
+    if not verify_launch_params(params, secret):
+        return None
+    try:
+        return int(params["vk_user_id"])
+    except (KeyError, ValueError):
+        return None
+
+
 # ---------------- health ----------------
 
 @app.get("/api/health")
@@ -181,20 +227,26 @@ def vk_entitled(body: VkEntitledBody):
         user_id = int(params["vk_user_id"])
     except (KeyError, ValueError):
         raise HTTPException(status_code=403, detail="no vk_user_id in launch params")
-    allowed = os.environ.get("VK_APP_ID", "").strip()
-    if allowed and allowed != "0" and params.get("vk_app_id") != allowed:
+    allowed = {os.environ.get("VK_APP_ID", "").strip(),
+               os.environ.get("OK_APP_ID", "").strip()} - {"", "0"}
+    # inside OK the launcher signs VK-style params with the shared secret but
+    # presents the OK app id — both are the same person for a transferred app
+    if allowed and params.get("vk_app_id") not in allowed:
         raise HTTPException(status_code=403, detail="launch params from another app")
     return {"user_id": user_id, "noads": user_has_noads(user_id)}
 
 
 # ---------------- VK payments callbacks ----------------
 
-def verify_callback_sig(params: dict, secret: str) -> bool:
+def verify_callback_sig(params: dict, secret: str, drop_empty: bool = False) -> bool:
     """Classic VK payments-callback signature: md5 over all params except
-    `sig`, sorted by key, concatenated as key=value, with the secret appended."""
+    `sig`, sorted by key, concatenated as key=value, with the secret appended.
+    OK's scheme is identical except empty-valued params are skipped
+    (drop_empty=True, used by the OK order callback)."""
     if not secret or not params.get("sig"):
         return False
-    items = sorted((k, str(v)) for k, v in params.items() if k not in ("sig", "sign"))
+    items = sorted((k, str(v)) for k, v in params.items()
+                   if k not in ("sig", "sign") and not (drop_empty and str(v) == ""))
     base = "".join(f"{k}={v}" for k, v in items) + secret
     return hmac.compare_digest(hashlib.md5(base.encode()).hexdigest(), str(params["sig"]))
 
@@ -244,8 +296,12 @@ def _handle_vk_order(params: dict, raw_body: str = "") -> JSONResponse:
     if not sig_ok:
         print(f"VK order: SIG UNVERIFIED (fallback to orders.get) sig={params.get('sig')!r} body={raw_body!r}", flush=True)
 
-    allowed_app_ids = {os.environ.get("VK_APP_ID", "").strip()} - {"", "0"}
+    allowed_app_ids = {os.environ.get(n, "").strip()
+                       for n in ("VK_APP_ID", "OK_APP_ID")} - {"", "0"}
     if allowed_app_ids and params.get("app_id") and params.get("app_id") not in allowed_app_ids:
+        # OK's payment bot presents the OK app id (OK_APP_ID) — transferred
+        # apps keep one secret key but get a distinct app id per platform;
+        # anything else gets logged and rejected
         print(f"VK order: APP MISMATCH got app_id={params.get('app_id')} expected={sorted(allowed_app_ids)}", flush=True)
         return _err(11, "Чужое приложение")
 
@@ -265,10 +321,15 @@ def _handle_vk_order(params: dict, raw_body: str = "") -> JSONResponse:
         if params.get("item") != PRODUCT:
             print(f"VK order: ITEM NOT FOUND item={params.get('item')!r}", flush=True)
             return _err(20, "Товар не найден")
+        # OK's bot (app_id = OK_APP_ID) asks for the same good on behalf of OK
+        # users, who pay in ОКах rather than votes — serve the ruble-parity
+        # price; its callbacks.payment must carry that same amount
+        ok_bot = (os.environ.get("OK_APP_ID", "").strip()
+                  and params.get("app_id") == os.environ.get("OK_APP_ID").strip())
         return JSONResponse({"response": {
             "item_id": params.get("item"),
             "title": NOADS_TITLE,
-            "price": NOADS_PRICE,
+            "price": noads_ok_price() if ok_bot else NOADS_PRICE,
             "photo_url": NOADS_PHOTO,
             # VK caches item info in the purchase dialog; short ttl keeps
             # price/title changes (and their sig quirks) from lingering
@@ -330,3 +391,96 @@ async def vk_order_post(request: Request):
     body = (await request.body()).decode("utf-8", "replace")
     params.update(dict(urllib.parse.parse_qsl(body, keep_blank_values=True)))
     return _handle_vk_order(params, raw_body=body)
+
+
+# ---------------- OK (Odnoklassniki) purchases ----------------
+# The OK-native uid in callbacks.payment differs from the vk_user_id the
+# entitlement checks authenticate as, so the client registers a mapping at
+# boot (POST /api/ok/map with its launch params: the OK launcher adds
+# vk_ok_user_id and still signs the VK-style params with the shared secret);
+# the transaction handler resolves the grant through it. Both ids map to the
+# same person for transferred apps.
+
+class OkMapBody(BaseModel):
+    lp: str  # raw launch params query string from the OK/VK iframe URL
+
+
+@app.post("/api/ok/map")
+def ok_map(body: OkMapBody):
+    secret = _vk_secret()
+    if not secret:
+        raise HTTPException(status_code=503, detail="VK entitlements not configured")
+    user = _lp_user(body.lp, secret)
+    if user is None:
+        raise HTTPException(status_code=403, detail="bad launch params signature")
+    params = dict(urllib.parse.parse_qsl(body.lp or "", keep_blank_values=True))
+    ok_uid = params.get("vk_ok_user_id", "")
+    if not ok_uid.isdigit():
+        raise HTTPException(status_code=400, detail="vk_ok_user_id missing")
+    with _ent_lock:
+        d = load_ent()
+        changed = d["ok_map"].get(ok_uid) != user
+        if changed:
+            d["ok_map"][ok_uid] = user
+            save_ent(d)
+    return {"ok": True, "mapped": changed}
+
+
+def _ok_error(code: int, msg: str) -> JSONResponse:
+    return JSONResponse({"error_code": code, "error_msg": msg},
+                        headers={"Invocation-error": str(code)})
+
+
+def _handle_ok_order(params: dict) -> JSONResponse:
+    secret = _vk_secret()
+    if not secret:
+        return _ok_error(300, "payments not configured")
+    if not verify_callback_sig(params, secret, drop_empty=True):
+        return _ok_error(10, "Некорректная подпись")
+    expected_key = os.environ.get("OK_APPLICATION_KEY", "")
+    if expected_key and params.get("application_key") != expected_key:
+        return _ok_error(11, "Чужое приложение")
+    if params.get("method", "callbacks.payment") != "callbacks.payment":
+        return _ok_error(11, "Неизвестный тип уведомления")
+    if params.get("product_code", "") != PRODUCT:
+        return _ok_error(20, "Товар не найден")
+    try:
+        amount = int(float(params.get("amount", "0") or 0))
+        uid = int(params.get("uid", "0") or 0)
+        transaction = str(params.get("transaction_id", "") or "")
+    except ValueError:
+        return _ok_error(100, "Некорректная транзакция")
+    if not uid or not transaction:
+        return _ok_error(100, "Некорректная транзакция")
+    if amount != noads_ok_price():
+        return _ok_error(21, "Цена не совпадает")
+    grant_user = load_ent()["ok_map"].get(str(uid)) or uid
+    extra = params.get("extra_attributes") or ""
+    if extra:
+        try:
+            grant_user = int(json.loads(extra).get("vk_user_id") or grant_user)
+        except (ValueError, TypeError):
+            pass
+    grant_noads(grant_user, transaction)
+    print(f"OK order: transaction {transaction} uid {uid} -> grant {PRODUCT} to user {grant_user}", flush=True)
+    return JSONResponse(True)
+
+
+@app.get("/api/ok/order")
+def ok_order_get(request: Request):
+    params = dict(request.query_params)
+    if params.get("notification_type"):
+        # a VK-protocol probe (get_item …) arriving on the OK notification
+        # URL — answer it with the same VK-protocol handler
+        return _handle_vk_order(params)
+    return _handle_ok_order(params)
+
+
+@app.post("/api/ok/order")
+async def ok_order_post(request: Request):
+    params = dict(request.query_params)
+    body = (await request.body()).decode("utf-8", "replace")
+    params.update(dict(urllib.parse.parse_qsl(body, keep_blank_values=True)))
+    if params.get("notification_type"):
+        return _handle_vk_order(params, raw_body=body)
+    return _handle_ok_order(params)
