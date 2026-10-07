@@ -56,10 +56,10 @@ Submit; paste the moderator comment from the RU file.
 
 ## 4b. Payments / ads wiring (VK only)
 
-The VK flavor of the build shows an interstitial after every 2nd finished
-game (`VKWebAppShowNativeAds`) and sells a one-time «disable ads» for votes
-(`VKWebAppShowOrderBox`, good **`noads`**, 15 votes — price lives in
-`backend/app.py` as `NN_NOADS_PRICE`). Console setup:
+The VK flavor of the build shows an interstitial after every finished game
+(`VKWebAppShowNativeAds`; VK may frequency-cap on its side) and sells a
+one-time «disable ads» for votes (`VKWebAppShowOrderBox`, good **`noads`**,
+15 votes — price lives in `backend/app.py` as `NN_NOADS_PRICE`). Console setup:
 
 1. Deploy the entitlement service (the goods catalog IS the `get_item`
    callback — there is no goods registry in any console):
@@ -101,7 +101,7 @@ its round-1 review — expect the same reviewer attention.
 | Exit to menu (quiz remark #3) | ⌂ MENU pill top-left, two-tap confirm → reload to the start screen; «PLAY AGAIN» also returns there ✓ |
 | Sound off control (2.2.5) | 🔊/🔇 on the start screen and in the HUD (next to `i`), mutes Tone's master output, preference persisted + synced ✓ |
 | Progress sync across platforms (2.3.8) | high scores, kill counts, sound and the noads flag are mirrored through `VKWebAppStorageSet/Get` (`nn-*` keys), merged by maximum on every load ✓ |
-| Monetization (4.2.1) | interstitial after every 2nd game + one-time `noads` purchase (15 votes) ✓ — `get_item`/order callbacks must be live before submission |
+| Monetization (4.2.1) | interstitial after every game + one-time `noads` purchase (15 votes) ✓ — `get_item`/order callbacks must be live before submission |
 | Age labeling | 6+ in the questionnaire ✓ |
 | Privacy policy URL | required field; `privacy.html` ships with the build ✓ |
 

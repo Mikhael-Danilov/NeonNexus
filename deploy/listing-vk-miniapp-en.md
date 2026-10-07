@@ -50,7 +50,7 @@ slot 5 is the warp blink. The high-score table lives in your browser.
 
 Works in current Chrome, Edge, Firefox and Safari (WebGL required).
 
-The game is free. An ad shows after every second finished game and can be
+The game is free. An ad shows after every finished game and can be
 removed with a one-time purchase in votes.
 
 ## Category

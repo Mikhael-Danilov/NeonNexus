@@ -5,7 +5,7 @@
 //   - VKWebAppInit on launch (platform spinner never clears without it)
 //   - progress sync via VKWebAppStorage, merged by maximum on every load
 //     (catalog rule 2.3.8 — progress must follow the user across platforms)
-//   - interstitial ad after every 2nd finished game (VKWebAppShowNativeAds)
+//   - interstitial ad after every finished game (VKWebAppShowNativeAds)
 //   - "disable ads" votes purchase (VKWebAppShowOrderBox, good `noads`),
 //     granted by the backend order callback, reconciled via /api/vk/entitled
 // Server side: backend/app.py + deploy/VK-MINIAPP-CATALOG.md.
@@ -117,12 +117,8 @@ var VKSync = (function () {
 
     function maybeInterstitial() {
         if (!inVk || noads) return;
-        let runs = parseInt(localStorage.getItem('neonNexusRuns'), 10) || 0;
-        runs++;
-        localStorage.setItem('neonNexusRuns', String(runs));
-        // first finished game is ad-free; then every 2nd one (quiz moderation
-        // pattern). no-fill before catalog approval is expected and silent.
-        if (runs < 2 || runs % 2 !== 0) return;
+        // an interstitial after every finished game; no-fill before catalog
+        // approval is expected and silent (VK may frequency-cap on its side)
         setTimeout(function () {
             send('VKWebAppShowNativeAds', { ad_format: 'interstitial' }).catch(function () {});
         }, 800);
