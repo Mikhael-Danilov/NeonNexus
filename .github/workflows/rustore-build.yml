@@ -1,0 +1,63 @@
+# Builds a signed release APK for the RuStore upload (RuStore drafts accept a
+# signed APK directly; an AAB would demand uploading the release signing key,
+# which must stay in Actions secrets only — see the quiz repo's rustore recipe).
+#
+# The keystore is decoded from the repo secrets INSIDE the runner and never
+# leaves it: the artifact carries only the signed APK (public cert, same as any
+# distributed APK). The repo is public, so no keystore material may ever land
+# in an artifact.
+#
+# Versioning follows the Play scheme (versionCode 1000 + play-publish
+# run_number): pass a code that is higher than the last Play upload but below
+# the next Play run_number so future Play uploads stay monotonic.
+
+name: RuStore Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: 'versionCode (AndroidManifest)'
+        required: true
+        default: '1003'
+      version_name:
+        description: 'versionName'
+        required: true
+        default: '1.0.3'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        run: |
+          echo "VERSION_CODE=${{ inputs.version_code }}" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=${{ inputs.version_name }}" >> "$GITHUB_ENV"
+
+      - name: Decode upload keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > my-upload-key.jks
+
+      - name: Build signed release APK
+        run: ./gradlew assembleRelease --stacktrace
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/my-upload-key.jks
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: neon-nexus-${{ env.VERSION_NAME }}-release
+          path: app/build/outputs/apk/release/app-release.apk
